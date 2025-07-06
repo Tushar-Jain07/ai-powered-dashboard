@@ -227,11 +227,10 @@ const Dashboard: React.FC = () => {
             onSearch={handleSearch}
             onClear={handleClearSearch}
             placeholder="Search data points..."
-            filters={[
-              { field: 'category', label: 'Category', type: 'select', options: ['Sales', 'Marketing', 'Operations', 'Finance', 'HR'] },
-              { field: 'value', label: 'Value Range', type: 'range', min: 0, max: 1000 },
-              { field: 'date', label: 'Date Range', type: 'daterange' },
-            ]}
+            searchFields={['name', 'category', 'value', 'status']}
+            categories={['Sales', 'Marketing', 'Operations', 'Finance', 'HR']}
+            dateRange={true}
+            numericRange={true}
           />
         </CardContent>
       </Card>

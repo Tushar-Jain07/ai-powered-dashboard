@@ -81,7 +81,6 @@ const KPICard: React.FC<KPICardProps> = ({
           </Typography>
           {icon && (
             <Box sx={{ 
-              color: 'primary.main',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

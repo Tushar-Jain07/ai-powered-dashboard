@@ -101,28 +101,32 @@ const Reports: React.FC = () => {
                   <KPICard
                     title="Total Sales"
                     value="$125,000"
-                    trend={12.5}
+                    trend="up"
+                    change={12.5}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <KPICard
                     title="Orders"
                     value="1,250"
-                    trend={8.3}
+                    trend="up"
+                    change={8.3}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <KPICard
                     title="Customers"
                     value="500"
-                    trend={15.2}
+                    trend="up"
+                    change={15.2}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <KPICard
                     title="Conversion Rate"
                     value="3.2%"
-                    trend={-0.5}
+                    trend="down"
+                    change={-0.5}
                   />
                 </Grid>
                 
