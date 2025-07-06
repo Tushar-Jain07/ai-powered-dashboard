@@ -1,20 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const http = require('http');
-const { Server } = require('socket.io');
 
 // Create Express app
 const app = express();
-const server = http.createServer(app);
-
-// Setup Socket.io
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST']
-  }
-});
 
 // Middleware
 app.use(cors({
@@ -59,27 +48,36 @@ app.use('/api/auth', (req, res) => {
   }
 });
 
-// Socket.io events
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-
-  socket.on('subscribe-to-dashboard', (dashboardId) => {
-    console.log(`User ${socket.id} subscribed to dashboard ${dashboardId}`);
-    socket.join(`dashboard-${dashboardId}`);
-  });
-
-  socket.on('unsubscribe-from-dashboard', (dashboardId) => {
-    console.log(`User ${socket.id} unsubscribed from dashboard ${dashboardId}`);
-    socket.leave(`dashboard-${dashboardId}`);
+// Additional API endpoints for dashboard data
+app.get('/api/dashboard/stats', (req, res) => {
+  res.json({
+    totalUsers: 1250,
+    activeUsers: 847,
+    totalRevenue: 45678,
+    growthRate: 12.5
   });
 });
 
-// Start server
-const PORT = 5000;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-}); 
+app.get('/api/dashboard/analytics', (req, res) => {
+  res.json({
+    chartData: [
+      { month: 'Jan', value: 100 },
+      { month: 'Feb', value: 150 },
+      { month: 'Mar', value: 200 },
+      { month: 'Apr', value: 180 },
+      { month: 'May', value: 250 },
+      { month: 'Jun', value: 300 }
+    ]
+  });
+});
+
+// For Vercel serverless deployment
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for Vercel
+module.exports = app; 
