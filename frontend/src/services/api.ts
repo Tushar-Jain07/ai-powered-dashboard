@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-// API URL - for Vercel deployment, use relative path for API calls
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+// API URL - determine if we're in development or production
+const isProduction = process.env.NODE_ENV === 'production';
+// In production (Vercel), use relative path; in development use localhost
+const API_URL = process.env.REACT_APP_API_URL || 
+  (isProduction ? '/api' : 'http://localhost:5000/api');
 
 // Create axios instance
 const api = axios.create({
