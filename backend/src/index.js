@@ -7,7 +7,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || '*',
   credentials: true
 }));
 app.use(express.json());
@@ -71,13 +71,11 @@ app.get('/api/dashboard/analytics', (req, res) => {
   });
 });
 
-// For Vercel serverless deployment
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// For all environments
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
-// Export for Vercel
+// Export for serverless environments
 module.exports = app; 
