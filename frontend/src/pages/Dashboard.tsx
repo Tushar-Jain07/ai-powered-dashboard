@@ -7,6 +7,8 @@ import {
   CardContent,
   Button,
   Chip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,6 +39,8 @@ const Dashboard: React.FC = () => {
   const [filteredData, setFilteredData] = useState<DashboardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addNotification } = useNotifications();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Mock data generation
   useEffect(() => {
@@ -161,15 +165,34 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: 3,
+        gap: { xs: 2, sm: 0 }
+      }}>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+            mb: { xs: 1, sm: 0 }
+          }}
+        >
           Dashboard
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 1,
+          flexDirection: { xs: 'column', sm: 'row' },
+          width: { xs: '100%', sm: 'auto' }
+        }}>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => addNotification('Add new item clicked', 'info')}
+            fullWidth={isMobile}
           >
             Add New
           </Button>
@@ -182,7 +205,7 @@ const Dashboard: React.FC = () => {
       </Box>
 
       {/* KPI Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
         {kpiData.map((kpi, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <KPICard {...kpi} />
@@ -192,93 +215,72 @@ const Dashboard: React.FC = () => {
 
       {/* Search and Filters */}
       <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom
+            sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+          >
             Search & Filter Data
           </Typography>
           <AdvancedSearch
             onSearch={handleSearch}
             onClear={handleClearSearch}
-            placeholder="Search by name, category, or value..."
-            searchFields={['name', 'category', 'value', 'status']}
-            categories={['Sales', 'Marketing', 'Operations', 'Finance', 'HR']}
-            dateRange={true}
-            numericRange={true}
+            placeholder="Search data points..."
+            filters={[
+              { field: 'category', label: 'Category', type: 'select', options: ['Sales', 'Marketing', 'Operations', 'Finance', 'HR'] },
+              { field: 'value', label: 'Value Range', type: 'range', min: 0, max: 1000 },
+              { field: 'date', label: 'Date Range', type: 'daterange' },
+            ]}
           />
         </CardContent>
       </Card>
 
-      {/* Results Summary */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {filteredData.length} of {data.length} records
-        </Typography>
-        {filteredData.length !== data.length && (
-          <Chip
-            label={`${data.length - filteredData.length} filtered out`}
-            size="small"
-            color="primary"
-            sx={{ ml: 1 }}
-          />
-        )}
-      </Box>
-
-      {/* Advanced Analytics */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <AdvancedAnalytics
-            data={filteredData}
-            title="Data Analytics"
-            refreshInterval={60000}
-          />
+      {/* Analytics Widget */}
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
+        <Grid item xs={12} lg={8}>
+          <Widget
+            id="analytics"
+            title="Advanced Analytics"
+            loading={false}
+          >
+            <AdvancedAnalytics data={filteredData} />
+          </Widget>
         </Grid>
-      </Grid>
-
-      {/* Data Table */}
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Widget id="data-overview" title="Data Overview">
+        <Grid item xs={12} lg={4}>
+          <Widget
+            id="data-table"
+            title="Recent Data"
+            loading={false}
+          >
             <DataTable
-              data={filteredData}
               columns={tableColumns}
+              data={filteredData.slice(0, 10)}
               searchable={false}
+              pagination={false}
+              onRowClick={(row) => addNotification(`Selected: ${row.name}`, 'info')}
             />
           </Widget>
         </Grid>
       </Grid>
 
-      {/* Quick Actions */}
-      <Card sx={{ mt: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Quick Actions
+      {/* Full Data Table */}
+      <Card>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography 
+            variant="h6" 
+            gutterBottom
+            sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+          >
+            All Data
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button
-              variant="outlined"
-              onClick={() => addNotification('Generate report clicked', 'info')}
-            >
-              Generate Report
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => addNotification('Schedule export clicked', 'info')}
-            >
-              Schedule Export
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => addNotification('Share dashboard clicked', 'info')}
-            >
-              Share Dashboard
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => addNotification('Set alerts clicked', 'info')}
-            >
-              Set Alerts
-            </Button>
-          </Box>
+          <DataTable
+            columns={tableColumns}
+            data={filteredData}
+            searchable={true}
+            pagination={true}
+            onRowClick={(row) => addNotification(`Selected: ${row.name}`, 'info')}
+          />
         </CardContent>
       </Card>
     </Box>

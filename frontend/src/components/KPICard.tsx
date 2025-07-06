@@ -1,152 +1,152 @@
 import React from 'react';
 import {
-  Box,
   Card,
   CardContent,
   Typography,
-  Skeleton,
-  Tooltip,
-  IconButton,
+  Box,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
+import {
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+} from '@mui/icons-material';
 
-export interface KPICardProps {
+interface KPICardProps {
   title: string;
-  value: string | number;
-  subtitle?: string;
+  value: string;
+  change?: number;
   icon?: React.ReactNode;
-  trend?: number;
-  trendLabel?: string;
-  loading?: boolean;
-  info?: string;
-  color?: 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info' | string;
-  onClick?: () => void;
+  trend?: 'up' | 'down' | 'stable';
 }
 
 const KPICard: React.FC<KPICardProps> = ({
   title,
   value,
-  subtitle,
+  change,
   icon,
   trend,
-  trendLabel,
-  loading = false,
-  info,
-  color = 'primary',
-  onClick,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  // Determine trend color and icon
-  let trendColor = theme.palette.grey[500];
-  let TrendIcon = TrendingFlatIcon;
-  
-  if (trend !== undefined) {
-    if (trend > 0) {
-      trendColor = theme.palette.success.main;
-      TrendIcon = TrendingUpIcon;
-    } else if (trend < 0) {
-      trendColor = theme.palette.error.main;
-      TrendIcon = TrendingDownIcon;
+  const getTrendIcon = () => {
+    if (!change) return null;
+    
+    if (change > 0) {
+      return <TrendingUpIcon sx={{ color: 'success.main', fontSize: { xs: '1rem', sm: '1.25rem' } }} />;
+    } else if (change < 0) {
+      return <TrendingDownIcon sx={{ color: 'error.main', fontSize: { xs: '1rem', sm: '1.25rem' } }} />;
     }
-  }
+    return null;
+  };
 
-  // Get color from theme if it's a theme color
-  let mainColor = color;
-  if (color === 'primary' || color === 'secondary' || color === 'success' || 
-      color === 'error' || color === 'warning' || color === 'info') {
-    mainColor = theme.palette[color].main;
-  }
+  const getChangeColor = () => {
+    if (!change) return 'text.secondary';
+    return change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'text.secondary';
+  };
 
   return (
     <Card 
       sx={{ 
         height: '100%',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-        '&:hover': onClick ? {
-          transform: 'translateY(-4px)',
-          boxShadow: 3,
-        } : {},
+        display: 'flex',
+        flexDirection: 'column',
+        '&:hover': {
+          boxShadow: theme.shadows[8],
+          transform: 'translateY(-2px)',
+          transition: 'all 0.3s ease-in-out',
+        },
       }}
-      onClick={onClick}
     >
-      <CardContent sx={{ height: '100%', p: 2 }}>
+      <CardContent sx={{ 
+        p: { xs: 2, sm: 3 },
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between'
+      }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                {title}
-              </Typography>
-              {info && (
-                <Tooltip title={info} arrow placement="top">
-                  <IconButton size="small" sx={{ ml: 0.5, p: 0 }}>
-                    <InfoOutlinedIcon fontSize="small" color="action" />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </Box>
-          </Box>
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{ 
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              fontWeight: 500,
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+          >
+            {title}
+          </Typography>
           {icon && (
-            <Box 
-              sx={{ 
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                bgcolor: `${mainColor}15`,
-                color: mainColor,
-              }}
-            >
+            <Box sx={{ 
+              color: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: { xs: 32, sm: 40 },
+              height: { xs: 32, sm: 40 },
+              borderRadius: '50%',
+              backgroundColor: 'primary.main',
+              color: 'white',
+              '& > *': {
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }
+            }}>
               {icon}
             </Box>
           )}
         </Box>
-        
-        {loading ? (
-          <>
-            <Skeleton variant="text" width="80%" height={40} />
-            <Skeleton variant="text" width="60%" />
-          </>
-        ) : (
-          <>
-            <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-              {value}
-            </Typography>
-            
-            {(subtitle || trend !== undefined) && (
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                {trend !== undefined && (
-                  <Box 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center',
-                      color: trendColor,
-                      mr: 1,
-                    }}
-                  >
-                    <TrendIcon fontSize="small" />
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', ml: 0.5 }}>
-                      {trend > 0 ? '+' : ''}{trend}%
-                    </Typography>
-                  </Box>
-                )}
-                
-                {(subtitle || trendLabel) && (
-                  <Typography variant="caption" color="text.secondary">
-                    {trendLabel || subtitle}
-                  </Typography>
-                )}
-              </Box>
-            )}
-          </>
-        )}
+
+        <Box>
+          <Typography 
+            variant="h4" 
+            component="div"
+            sx={{ 
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+              fontWeight: 700,
+              mb: 1,
+              lineHeight: 1.2
+            }}
+          >
+            {value}
+          </Typography>
+
+          {change !== undefined && (
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5,
+              flexWrap: 'wrap'
+            }}>
+              {getTrendIcon()}
+              <Typography 
+                variant="body2" 
+                color={getChangeColor()}
+                sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5
+                }}
+              >
+                {change > 0 ? '+' : ''}{change?.toFixed(1)}%
+              </Typography>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  ml: 0.5
+                }}
+              >
+                vs last month
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </CardContent>
     </Card>
   );

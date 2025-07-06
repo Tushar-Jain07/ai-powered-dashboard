@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run start:frontend",
     "start:frontend": "cd frontend && npm start",
-    "start:backend": "cd backend && npm start",
+    "start:backend": "cd backend && cross-env PORT=5001 npm start",
     "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "build": "cd frontend && npm install && npm run build",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
@@ -22,5 +22,8 @@
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3"
   }
 }

@@ -4,7 +4,7 @@ import axios from 'axios';
 const isProduction = process.env.NODE_ENV === 'production';
 // In production (Vercel), use relative path; in development use localhost
 const API_URL = process.env.REACT_APP_API_URL || 
-  (isProduction ? '/api' : 'http://localhost:5000/api');
+  (isProduction ? '/api' : 'http://localhost:5001/api');
 
 // Create axios instance
 const api = axios.create({

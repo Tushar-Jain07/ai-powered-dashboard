@@ -16,6 +16,8 @@ import {
   MenuItem,
   Divider,
   Badge,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -41,6 +43,8 @@ const drawerWidth = 240;
 const Layout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
@@ -65,6 +69,13 @@ const Layout: React.FC = () => {
     navigate('/login');
   };
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    if (isMobile) {
+      setMobileOpen(false);
+    }
+  };
+
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Data Sources', icon: <DataUsageIcon />, path: '/data-sources' },
@@ -75,7 +86,7 @@ const Layout: React.FC = () => {
   const drawer = (
     <div>
       <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+        <Typography variant="h6" noWrap component="div" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
           AI Dashboard
         </Typography>
       </Toolbar>
@@ -85,10 +96,22 @@ const Layout: React.FC = () => {
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigation(item.path)}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: theme.palette.primary.main + '20',
+                },
+              }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemIcon sx={{ minWidth: { xs: 40, sm: 56 } }}>{item.icon}</ListItemIcon>
+              <ListItemText 
+                primary={item.text} 
+                sx={{ 
+                  '& .MuiListItemText-primary': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -106,7 +129,7 @@ const Layout: React.FC = () => {
           ml: { sm: `${drawerWidth}px` },
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -116,8 +139,29 @@ const Layout: React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
+            sx={{ 
+              flexGrow: 1,
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              display: { xs: 'none', sm: 'block' }
+            }}
+          >
             AI-Powered Analytics Dashboard
+          </Typography>
+          <Typography 
+            variant="h6" 
+            noWrap 
+            component="div" 
+            sx={{ 
+              flexGrow: 1,
+              fontSize: '1rem',
+              display: { xs: 'block', sm: 'none' }
+            }}
+          >
+            AI Dashboard
           </Typography>
           
           {/* Theme Toggle */}
@@ -165,13 +209,13 @@ const Layout: React.FC = () => {
             open={Boolean(anchorEl)}
             onClose={handleProfileMenuClose}
           >
-            <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>
+            <MenuItem onClick={() => { handleNavigation('/profile'); handleProfileMenuClose(); }}>
               <ListItemIcon>
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               Profile
             </MenuItem>
-            <MenuItem onClick={() => { navigate('/settings'); handleProfileMenuClose(); }}>
+            <MenuItem onClick={() => { handleNavigation('/settings'); handleProfileMenuClose(); }}>
               <ListItemIcon>
                 <SettingsIcon fontSize="small" />
               </ListItemIcon>
@@ -197,11 +241,15 @@ const Layout: React.FC = () => {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: theme.palette.background.paper,
+            },
           }}
         >
           {drawer}
@@ -210,7 +258,11 @@ const Layout: React.FC = () => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: theme.palette.background.paper,
+            },
           }}
           open
         >
@@ -221,11 +273,11 @@ const Layout: React.FC = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 1, sm: 2, md: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: { xs: 7, sm: 8 },
         }}
       >
-        <Toolbar />
         <Outlet />
       </Box>
     </Box>
