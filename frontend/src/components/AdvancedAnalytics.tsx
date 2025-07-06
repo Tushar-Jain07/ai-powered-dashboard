@@ -115,18 +115,6 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
     { value: 'trend', label: 'Trend' },
   ];
 
-  useEffect(() => {
-    processData();
-  }, [processData]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refreshData();
-    }, refreshInterval);
-
-    return () => clearInterval(interval);
-  }, [refreshInterval, refreshData]);
-
   const processData = useCallback(() => {
     // Process data based on selected time range and metrics
     let filteredData = [...data];
@@ -176,6 +164,18 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
       setIsLoading(false);
     }
   }, [addNotification]);
+
+  useEffect(() => {
+    processData();
+  }, [processData]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshData();
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [refreshInterval, refreshData]);
 
   const handleMetricToggle = (metric: string) => {
     setSelectedMetrics(prev =>
