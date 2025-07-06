@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -17,18 +17,11 @@ import {
   Typography,
   Button,
   Divider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   FilterList as FilterIcon,
-  ExpandMore as ExpandMoreIcon,
-  DateRange as DateRangeIcon,
-  Category as CategoryIcon,
-  TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 
 interface SearchFilter {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -9,7 +9,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Button,
   Chip,
   Tabs,
   Tab,
@@ -33,8 +32,6 @@ import {
   BarChart as BarChartIcon,
   PieChart as PieChartIcon,
   ShowChart as LineChartIcon,
-  TableChart as TableChartIcon,
-  Download as DownloadIcon,
   Fullscreen as FullscreenIcon,
   ShowChart as AreaChartIcon,
   ScatterPlot as ScatterPlotIcon,
@@ -120,7 +117,7 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
 
   useEffect(() => {
     processData();
-  }, [data, timeRange, selectedMetrics]);
+  }, [processData]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -128,9 +125,9 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
     }, refreshInterval);
 
     return () => clearInterval(interval);
-  }, [refreshInterval]);
+  }, [refreshInterval, refreshData]);
 
-  const processData = () => {
+  const processData = useCallback(() => {
     // Process data based on selected time range and metrics
     let filteredData = [...data];
     
@@ -165,9 +162,9 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
     } else {
       setProcessedData(filteredData);
     }
-  };
+  }, [data, timeRange, chartType]);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Simulate API call
@@ -178,7 +175,7 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [addNotification]);
 
   const handleMetricToggle = (metric: string) => {
     setSelectedMetrics(prev =>
