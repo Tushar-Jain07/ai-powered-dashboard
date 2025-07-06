@@ -1,0 +1,25 @@
+{
+  "name": "ai-powered-dashboard",
+  "version": "1.0.0",
+  "description": "AI-Powered Analytics Dashboard with React frontend and Node.js backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run start:frontend",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm start",
+    "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": [
+    "react",
+    "nodejs",
+    "dashboard",
+    "analytics",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
