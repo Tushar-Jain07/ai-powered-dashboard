@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Box, Typography, Paper, Grid } from '@mui/material';
-import GridItem from '../components/GridItem';
 import LineChart from '../components/charts/LineChart';
 import BarChart from '../components/charts/BarChart';
 import PieChart from '../components/charts/PieChart';

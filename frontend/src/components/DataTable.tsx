@@ -10,10 +10,8 @@ import {
   Paper,
   TextField,
   Box,
-  Typography,
   IconButton,
   Tooltip,
-  Chip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import EditIcon from '@mui/icons-material/Edit';

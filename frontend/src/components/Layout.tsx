@@ -12,8 +12,6 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  useTheme,
-  Avatar,
   Menu,
   MenuItem,
   Divider,
@@ -43,10 +41,9 @@ const drawerWidth = 240;
 const Layout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { isDarkMode, toggleTheme } = useCustomTheme();
   const { notifications } = useNotifications();
 
