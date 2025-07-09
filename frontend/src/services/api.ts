@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 // API URL - determine if we're in development or production
-const isProduction = process.env.NODE_ENV === 'production';
-// In production (Vercel), use relative path; in development use localhost
-const API_URL = process.env.REACT_APP_API_URL || 
-  (isProduction ? '/api' : 'http://localhost:5001/api');
+const isProduction = import.meta.env.PROD;
+// In production, use relative path; in development use proxy from vite.config.ts
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Create axios instance
 const api = axios.create({

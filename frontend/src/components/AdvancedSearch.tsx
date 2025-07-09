@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   TextField,
@@ -17,17 +17,22 @@ import {
   Typography,
   Button,
   Divider,
+  Tooltip,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
   FilterList as FilterIcon,
+  Save as SaveIcon,
+  ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
 
 interface SearchFilter {
   field: string;
   operator: string;
-  value: string | number | boolean;
+  value: string | number | boolean | string[];
 }
 
 interface AdvancedSearchProps {
@@ -38,6 +43,7 @@ interface AdvancedSearchProps {
   categories?: string[];
   dateRange?: boolean;
   numericRange?: boolean;
+  saveFilters?: boolean;
 }
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
@@ -48,18 +54,24 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   categories = [],
   dateRange = true,
   numericRange = true,
+  saveFilters = false,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<SearchFilter[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | string[]>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [numericValue, setNumericValue] = useState<number[]>([0, 100]);
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [multiSelect, setMultiSelect] = useState(false);
+  const [savedFilters, setSavedFilters] = useState<{name: string, query: string, filters: SearchFilter[]}[]>([]);
 
-  const operators = [
+  const operators = useMemo(() => [
     { value: 'equals', label: 'Equals' },
     { value: 'contains', label: 'Contains' },
     { value: 'starts_with', label: 'Starts with' },
@@ -67,17 +79,27 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     { value: 'greater_than', label: 'Greater than' },
     { value: 'less_than', label: 'Less than' },
     { value: 'between', label: 'Between' },
-  ];
+  ], []);
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     const allFilters = [...filters];
     
     if (selectedCategory) {
-      allFilters.push({
-        field: 'category',
-        operator: 'equals',
-        value: selectedCategory,
-      });
+      if (Array.isArray(selectedCategory)) {
+        if (selectedCategory.length > 0) {
+          allFilters.push({
+            field: 'category',
+            operator: 'in',
+            value: selectedCategory,
+          });
+        }
+      } else if (selectedCategory) {
+        allFilters.push({
+          field: 'category',
+          operator: 'equals',
+          value: selectedCategory,
+        });
+      }
     }
     
     if (dateFrom || dateTo) {
@@ -111,9 +133,9 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     }
 
     onSearch(searchQuery, allFilters);
-  };
+  }, [searchQuery, filters, selectedCategory, dateFrom, dateTo, numericValue, onSearch]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setSearchQuery('');
     setFilters([]);
     setSelectedCategory('');
@@ -123,32 +145,93 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     setSortBy('name');
     setSortOrder('asc');
     onClear();
-  };
+  }, [onClear]);
 
-  const addFilter = () => {
-    setFilters([...filters, { field: 'name', operator: 'contains', value: '' }]);
-  };
+  const addFilter = useCallback(() => {
+    setFilters([...filters, { field: searchFields[0], operator: 'contains', value: '' }]);
+  }, [filters, searchFields]);
 
-  const updateFilter = (index: number, field: keyof SearchFilter, value: string | number | boolean) => {
+  const updateFilter = useCallback((index: number, field: keyof SearchFilter, value: string | number | boolean | string[]) => {
     const newFilters = [...filters];
     newFilters[index] = { ...newFilters[index], [field]: value };
     setFilters(newFilters);
-  };
+  }, [filters]);
 
-  const removeFilter = (index: number) => {
+  const removeFilter = useCallback((index: number) => {
     setFilters(filters.filter((_, i) => i !== index));
-  };
+  }, [filters]);
 
-  const handleKeyPress = (event: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       handleSearch();
     }
-  };
+  }, [handleSearch]);
+  
+  const saveCurrentFilters = useCallback(() => {
+    const name = window.prompt("Name for this filter set:");
+    if (name) {
+      setSavedFilters([
+        ...savedFilters,
+        {
+          name,
+          query: searchQuery,
+          filters: [
+            ...filters,
+            ...(selectedCategory ? [{ field: 'category', operator: 'equals', value: selectedCategory }] : []),
+            ...(dateFrom || dateTo ? [{ field: 'date', operator: 'between', value: `${dateFrom || ''},${dateTo || ''}` }] : []),
+            ...(numericValue[0] !== 0 || numericValue[1] !== 100 ? [{ field: 'value', operator: 'between', value: `${numericValue[0]},${numericValue[1]}` }] : []),
+          ]
+        }
+      ]);
+    }
+  }, [savedFilters, searchQuery, filters, selectedCategory, dateFrom, dateTo, numericValue]);
+  
+  const loadSavedFilter = useCallback((index: number) => {
+    const saved = savedFilters[index];
+    setSearchQuery(saved.query);
+    setFilters(saved.filters.filter(f => 
+      f.field !== 'category' && 
+      f.field !== 'date' && 
+      f.field !== 'value'
+    ));
+    
+    // Extract special filters
+    const categoryFilter = saved.filters.find(f => f.field === 'category');
+    const dateFilter = saved.filters.find(f => f.field === 'date');
+    const valueFilter = saved.filters.find(f => f.field === 'value');
+    
+    if (categoryFilter) setSelectedCategory(categoryFilter.value);
+    
+    if (dateFilter && typeof dateFilter.value === 'string') {
+      const [from, to] = dateFilter.value.split(',');
+      setDateFrom(from);
+      setDateTo(to);
+    }
+    
+    if (valueFilter && typeof valueFilter.value === 'string') {
+      const [min, max] = valueFilter.value.split(',').map(Number);
+      setNumericValue([min, max]);
+    }
+    
+    handleSearch();
+  }, [savedFilters, handleSearch]);
+
+  const hasActiveFilters = useMemo(() => filters.length > 0 || 
+    selectedCategory || 
+    dateFrom || 
+    dateTo || 
+    numericValue[0] !== 0 || 
+    numericValue[1] !== 100, [filters, selectedCategory, dateFrom, dateTo, numericValue]);
 
   return (
     <Box>
       {/* Main Search Bar */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' }, 
+        gap: { xs: 1, sm: 2 },
+        mb: 2
+      }}>
         <TextField
           fullWidth
           placeholder={placeholder}
@@ -166,63 +249,104 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                 <IconButton
                   size="small"
                   onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
                 >
                   <ClearIcon />
                 </IconButton>
               </InputAdornment>
             ),
           }}
+          aria-label="Search"
         />
-        <Button
-          variant="outlined"
-          startIcon={<FilterIcon />}
-          onClick={() => setShowFilters(!showFilters)}
-          sx={{ minWidth: 'auto' }}
-        >
-          Filters
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleSearch}
-          disabled={!searchQuery && filters.length === 0}
-        >
-          Search
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleClear}
-        >
-          Clear
-        </Button>
+        <Box sx={{ 
+          display: 'flex',
+          flexDirection: { xs: 'row', sm: 'row' },
+          gap: { xs: 1, sm: 1 },
+          width: { xs: '100%', sm: 'auto' } 
+        }}>
+          <Tooltip title="Toggle filter panel">
+            <Button
+              variant={showFilters ? "contained" : "outlined"}
+              startIcon={<FilterIcon />}
+              onClick={() => setShowFilters(!showFilters)}
+              aria-expanded={showFilters}
+              aria-controls="filter-panel"
+              aria-label="Toggle filters"
+              sx={{ 
+                minWidth: 'auto',
+                flexGrow: { xs: 1, sm: 0 }
+              }}
+            >
+              Filters
+            </Button>
+          </Tooltip>
+          <Button
+            variant="contained"
+            onClick={handleSearch}
+            disabled={!searchQuery && !hasActiveFilters}
+            sx={{ flexGrow: { xs: 1, sm: 0 } }}
+            aria-label="Apply search"
+          >
+            Search
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={handleClear}
+            sx={{ flexGrow: { xs: 1, sm: 0 } }}
+            aria-label="Clear search"
+          >
+            Clear
+          </Button>
+        </Box>
       </Box>
 
       {/* Active Filters Display */}
-      {(filters.length > 0 || selectedCategory || dateFrom || dateTo || numericValue[0] !== 0 || numericValue[1] !== 100) && (
+      {hasActiveFilters && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Active Filters:
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 0.75,
+            flexWrap: 'wrap',
+            maxHeight: '80px',
+            overflowY: 'auto'
+          }}>
             {filters.map((filter, index) => (
               <Chip
-                key={index}
+                key={`filter-${index}`}
                 label={`${filter.field} ${filter.operator} ${filter.value}`}
                 onDelete={() => removeFilter(index)}
                 size="small"
+                sx={{ m: 0.25 }}
               />
             ))}
-            {selectedCategory && (
-              <Chip
-                label={`Category: ${selectedCategory}`}
-                onDelete={() => setSelectedCategory('')}
-                size="small"
-              />
+            {Array.isArray(selectedCategory) ? (
+              selectedCategory.length > 0 && (
+                <Chip
+                  label={`Categories: ${selectedCategory.length} selected`}
+                  onDelete={() => setSelectedCategory([])}
+                  size="small"
+                  sx={{ m: 0.25 }}
+                />
+              )
+            ) : (
+              selectedCategory && (
+                <Chip
+                  label={`Category: ${selectedCategory}`}
+                  onDelete={() => setSelectedCategory('')}
+                  size="small"
+                  sx={{ m: 0.25 }}
+                />
+              )
             )}
             {(dateFrom || dateTo) && (
               <Chip
                 label={`Date: ${dateFrom || 'any'} - ${dateTo || 'any'}`}
                 onDelete={() => { setDateFrom(''); setDateTo(''); }}
                 size="small"
+                sx={{ m: 0.25 }}
               />
             )}
             {(numericValue[0] !== 0 || numericValue[1] !== 100) && (
@@ -230,6 +354,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                 label={`Value: ${numericValue[0]} - ${numericValue[1]}`}
                 onDelete={() => setNumericValue([0, 100])}
                 size="small"
+                sx={{ m: 0.25 }}
               />
             )}
           </Box>
@@ -237,21 +362,51 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
       )}
 
       {/* Advanced Filters */}
-      <Collapse in={showFilters}>
+      <Collapse in={showFilters} id="filter-panel">
         <Card sx={{ mb: 2 }}>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             <Grid container spacing={3}>
               {/* Category Filter */}
               {categories.length > 0 && (
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Category</InputLabel>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" sx={{ mr: 1 }}>Categories</Typography>
+                    <Tooltip title={multiSelect ? "Switch to single select" : "Switch to multi-select"}>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => {
+                          setSelectedCategory('');
+                          setMultiSelect(!multiSelect);
+                        }}
+                      >
+                        <ArrowDropDownIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  <FormControl fullWidth size="small">
+                    <InputLabel id="category-label">Category</InputLabel>
                     <Select
+                      labelId="category-label"
                       value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value as string | string[])}
                       label="Category"
-                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      multiple={multiSelect}
+                      renderValue={multiSelect 
+                        ? (selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {(selected as string[]).map((value) => (
+                                <Chip key={value} label={value} size="small" />
+                              ))}
+                            </Box>
+                          )
+                        : undefined
+                      }
                     >
-                      <MenuItem value="">All Categories</MenuItem>
+                      {multiSelect && (
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                      )}
                       {categories.map((category) => (
                         <MenuItem key={category} value={category}>
                           {category}
@@ -265,144 +420,186 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
               {/* Date Range Filter */}
               {dateRange && (
                 <Grid item xs={12} md={6}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Date Range
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>Date Range</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
                       <TextField
-                        type="date"
+                        fullWidth
                         label="From"
+                        type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
                         size="small"
-                        fullWidth
                       />
+                    </Grid>
+                    <Grid item xs={6}>
                       <TextField
-                        type="date"
+                        fullWidth
                         label="To"
+                        type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
                         size="small"
-                        fullWidth
                       />
-                    </Box>
-                  </Box>
+                    </Grid>
+                  </Grid>
                 </Grid>
               )}
 
               {/* Numeric Range Filter */}
               {numericRange && (
                 <Grid item xs={12} md={6}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Value Range: {numericValue[0]} - {numericValue[1]}
-                    </Typography>
-                    <Slider
-                      value={numericValue}
-                      onChange={(_, value) => setNumericValue(value as number[])}
-                      valueLabelDisplay="auto"
-                      min={0}
-                      max={100}
-                    />
-                  </Box>
+                  <Typography variant="body2" gutterBottom>Value Range: {numericValue[0]} - {numericValue[1]}</Typography>
+                  <Slider
+                    value={numericValue}
+                    onChange={(e, newValue) => setNumericValue(newValue as number[])}
+                    valueLabelDisplay="auto"
+                    aria-labelledby="range-slider"
+                    min={0}
+                    max={1000}
+                    step={10}
+                  />
                 </Grid>
               )}
 
               {/* Sort Options */}
               <Grid item xs={12} md={6}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Sort By</InputLabel>
-                    <Select
-                      value={sortBy}
-                      label="Sort By"
-                      onChange={(e) => setSortBy(e.target.value)}
-                      size="small"
-                    >
-                      <MenuItem value="name">Name</MenuItem>
-                      <MenuItem value="date">Date</MenuItem>
-                      <MenuItem value="value">Value</MenuItem>
-                      <MenuItem value="category">Category</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel>Order</InputLabel>
-                    <Select
-                      value={sortOrder}
-                      label="Order"
-                      onChange={(e) => setSortOrder(e.target.value)}
-                      size="small"
-                    >
-                      <MenuItem value="asc">Ascending</MenuItem>
-                      <MenuItem value="desc">Descending</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                <Typography variant="body2" sx={{ mb: 1 }}>Sort By</Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="sort-field-label">Field</InputLabel>
+                      <Select
+                        labelId="sort-field-label"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        label="Field"
+                      >
+                        {searchFields.map((field) => (
+                          <MenuItem key={field} value={field}>
+                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel id="sort-order-label">Order</InputLabel>
+                      <Select
+                        labelId="sort-order-label"
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        label="Order"
+                      >
+                        <MenuItem value="asc">Ascending</MenuItem>
+                        <MenuItem value="desc">Descending</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
 
-            {/* Custom Filters */}
             <Divider sx={{ my: 2 }} />
+
+            {/* Custom Filters */}
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Custom Filters
-              </Typography>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2">Custom Filters</Typography>
+                <Button 
+                  size="small" 
+                  startIcon={<FilterIcon />} 
+                  onClick={addFilter}
+                >
+                  Add Filter
+                </Button>
+              </Box>
+              
               {filters.map((filter, index) => (
-                <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Field</InputLabel>
-                    <Select
-                      value={filter.field}
-                      label="Field"
-                      onChange={(e) => updateFilter(index, 'field', e.target.value)}
-                    >
-                      {searchFields.map((field) => (
-                        <MenuItem key={field} value={field}>
-                          {field}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 120 }}>
-                    <InputLabel>Operator</InputLabel>
-                    <Select
-                      value={filter.operator}
-                      label="Operator"
-                      onChange={(e) => updateFilter(index, 'operator', e.target.value)}
-                    >
-                      {operators.map((op) => (
-                        <MenuItem key={op.value} value={op.value}>
-                          {op.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    size="small"
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => updateFilter(index, 'value', e.target.value)}
-                    sx={{ flexGrow: 1 }}
-                  />
-                  <IconButton
-                    size="small"
-                    onClick={() => removeFilter(index)}
-                    color="error"
-                  >
-                    <ClearIcon />
-                  </IconButton>
-                </Box>
+                <Grid container spacing={2} key={index} sx={{ mb: 2 }}>
+                  <Grid item xs={12} sm={3}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Field</InputLabel>
+                      <Select
+                        value={filter.field}
+                        onChange={(e) => updateFilter(index, 'field', e.target.value)}
+                        label="Field"
+                      >
+                        {searchFields.map((field) => (
+                          <MenuItem key={field} value={field}>
+                            {field.charAt(0).toUpperCase() + field.slice(1)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Operator</InputLabel>
+                      <Select
+                        value={filter.operator}
+                        onChange={(e) => updateFilter(index, 'operator', e.target.value)}
+                        label="Operator"
+                      >
+                        {operators.map((op) => (
+                          <MenuItem key={op.value} value={op.value}>{op.label}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      label="Value"
+                      value={filter.value}
+                      onChange={(e) => updateFilter(index, 'value', e.target.value)}
+                      size="small"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={1} sx={{ display: 'flex', alignItems: 'center' }}>
+                    <IconButton onClick={() => removeFilter(index)} size="small" aria-label={`Remove filter ${index + 1}`}>
+                      <ClearIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
               ))}
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={addFilter}
-                startIcon={<FilterIcon />}
-              >
-                Add Filter
-              </Button>
             </Box>
+            
+            {saveFilters && savedFilters.length > 0 && (
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Box>
+                  <Typography variant="body2" sx={{ mb: 1 }}>Saved Filters</Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {savedFilters.map((savedFilter, index) => (
+                      <Chip 
+                        key={index}
+                        label={savedFilter.name}
+                        onClick={() => loadSavedFilter(index)}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              </>
+            )}
+            
+            {saveFilters && (
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  size="small" 
+                  startIcon={<SaveIcon />} 
+                  onClick={saveCurrentFilters}
+                  disabled={!hasActiveFilters && !searchQuery}
+                >
+                  Save Current Filters
+                </Button>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Collapse>
@@ -410,4 +607,4 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   );
 };
 
-export default AdvancedSearch; 
+export default React.memo(AdvancedSearch); 

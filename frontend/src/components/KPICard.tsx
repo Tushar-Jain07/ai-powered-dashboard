@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   Card,
   CardContent,
   Typography,
   Box,
   useTheme,
-  useMediaQuery,
+  Tooltip,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
+  TrendingFlat as TrendingFlatIcon,
 } from '@mui/icons-material';
 
 interface KPICardProps {
@@ -18,6 +19,7 @@ interface KPICardProps {
   change?: number;
   icon?: React.ReactNode;
   trend?: 'up' | 'down' | 'stable';
+  comparisonPeriod?: string;
 }
 
 const KPICard: React.FC<KPICardProps> = ({
@@ -26,23 +28,57 @@ const KPICard: React.FC<KPICardProps> = ({
   change,
   icon,
   trend,
+  comparisonPeriod = 'vs last month',
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const getTrendIcon = () => {
-    if (!change) return null;
+    if (change === undefined) return null;
     
     if (change > 0) {
-      return <TrendingUpIcon sx={{ color: 'success.main', fontSize: { xs: '1rem', sm: '1.25rem' } }} />;
+      return (
+        <Tooltip title={`Increased by ${change.toFixed(1)}%`}>
+          <TrendingUpIcon 
+            sx={{ 
+              color: 'success.main', 
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              verticalAlign: 'middle'
+            }} 
+            aria-label="trend up" 
+          />
+        </Tooltip>
+      );
     } else if (change < 0) {
-      return <TrendingDownIcon sx={{ color: 'error.main', fontSize: { xs: '1rem', sm: '1.25rem' } }} />;
+      return (
+        <Tooltip title={`Decreased by ${Math.abs(change).toFixed(1)}%`}>
+          <TrendingDownIcon 
+            sx={{ 
+              color: 'error.main', 
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              verticalAlign: 'middle'
+            }} 
+            aria-label="trend down" 
+          />
+        </Tooltip>
+      );
     }
-    return null;
+    
+    return (
+      <Tooltip title="No change">
+        <TrendingFlatIcon 
+          sx={{ 
+            color: 'text.secondary', 
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            verticalAlign: 'middle'
+          }} 
+          aria-label="no change" 
+        />
+      </Tooltip>
+    );
   };
 
   const getChangeColor = () => {
-    if (!change) return 'text.secondary';
+    if (change === undefined) return 'text.secondary';
     return change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'text.secondary';
   };
 
@@ -52,24 +88,52 @@ const KPICard: React.FC<KPICardProps> = ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'all 0.3s ease-in-out',
+        position: 'relative',
+        overflow: 'hidden',
         '&:hover': {
           boxShadow: theme.shadows[8],
-          transform: 'translateY(-2px)',
-          transition: 'all 0.3s ease-in-out',
+          transform: 'translateY(-4px)',
         },
+        '&:after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '4px',
+          backgroundColor: change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'primary.main',
+          opacity: 0,
+          transition: 'opacity 0.3s ease-in-out',
+        },
+        '&:hover:after': {
+          opacity: 1,
+        }
       }}
+      aria-label={`${title}: ${value}${change !== undefined ? `, ${change > 0 ? 'up' : 'down'} ${Math.abs(change).toFixed(1)}%` : ''}`}
+      tabIndex={0}
     >
-      <CardContent sx={{ 
-        p: { xs: 2, sm: 3 },
-        flexGrow: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between'
-      }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+      <CardContent 
+        component="div"
+        sx={{ 
+          p: { xs: 2, sm: 3 },
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          '&:last-child': { pb: { xs: 2, sm: 3 } },
+        }}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start', 
+          mb: 2 
+        }}>
           <Typography 
             variant="body2" 
             color="text.secondary"
+            component="h3"
             sx={{ 
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
               fontWeight: 500,
@@ -80,19 +144,22 @@ const KPICard: React.FC<KPICardProps> = ({
             {title}
           </Typography>
           {icon && (
-            <Box sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: { xs: 32, sm: 40 },
-              height: { xs: 32, sm: 40 },
-              borderRadius: '50%',
-              backgroundColor: 'primary.main',
-              color: 'white',
-              '& > *': {
-                fontSize: { xs: '1rem', sm: '1.25rem' }
-              }
-            }}>
+            <Box 
+              sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
+                borderRadius: '50%',
+                backgroundColor: 'primary.main',
+                color: 'white',
+                '& > *': {
+                  fontSize: { xs: '1rem', sm: '1.25rem' }
+                }
+              }}
+              aria-hidden="true"
+            >
               {icon}
             </Box>
           )}
@@ -101,7 +168,7 @@ const KPICard: React.FC<KPICardProps> = ({
         <Box>
           <Typography 
             variant="h4" 
-            component="div"
+            component="p"
             sx={{ 
               fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
               fontWeight: 700,
@@ -113,16 +180,22 @@ const KPICard: React.FC<KPICardProps> = ({
           </Typography>
 
           {change !== undefined && (
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5,
-              flexWrap: 'wrap'
-            }}>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 0.5,
+                flexWrap: 'wrap'
+              }}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               {getTrendIcon()}
               <Typography 
                 variant="body2" 
                 color={getChangeColor()}
+                component="span"
                 sx={{ 
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   fontWeight: 600,
@@ -136,12 +209,13 @@ const KPICard: React.FC<KPICardProps> = ({
               <Typography 
                 variant="body2" 
                 color="text.secondary"
+                component="span"
                 sx={{ 
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   ml: 0.5
                 }}
               >
-                vs last month
+                {comparisonPeriod}
               </Typography>
             </Box>
           )}
@@ -151,4 +225,4 @@ const KPICard: React.FC<KPICardProps> = ({
   );
 };
 
-export default KPICard; 
+export default memo(KPICard); 
