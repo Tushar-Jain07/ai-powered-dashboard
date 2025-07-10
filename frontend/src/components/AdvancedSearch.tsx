@@ -200,7 +200,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     const dateFilter = saved.filters.find(f => f.field === 'date');
     const valueFilter = saved.filters.find(f => f.field === 'value');
     
-    if (categoryFilter) setSelectedCategory(categoryFilter.value);
+    if (categoryFilter) setSelectedCategory(categoryFilter.value as string);
     
     if (dateFilter && typeof dateFilter.value === 'string') {
       const [from, to] = dateFilter.value.split(',');

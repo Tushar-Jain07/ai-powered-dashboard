@@ -92,7 +92,7 @@ const Dashboard: React.FC = () => {
         change: Math.floor(Math.random() * 40) - 20,
         category: categories[Math.floor(Math.random() * categories.length)],
         date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-        trend: Math.random() > 0.5 ? 'up' : 'down',
+        trend: Math.random() > 0.5 ? 'up' : 'down' as 'up' | 'down' | 'stable',
         status: ['active', 'inactive', 'pending'][Math.floor(Math.random() * 3)] as 'active' | 'inactive' | 'pending',
       }));
   }, []);
@@ -254,31 +254,31 @@ const Dashboard: React.FC = () => {
           </Box>
         </Widget>
       ),
-      defaultSize: [12, 5],
+      defaultSize: [12, 5] as [number, number],
     },
     {
       id: 'kpi-1',
       title: 'Revenue',
       component: <KPICard {...kpiData[0]} />,
-      defaultSize: [3, 3],
+      defaultSize: [3, 3] as [number, number],
     },
     {
       id: 'kpi-2',
       title: 'Users',
       component: <KPICard {...kpiData[1]} />,
-      defaultSize: [3, 3],
+      defaultSize: [3, 3] as [number, number],
     },
     {
       id: 'kpi-3',
       title: 'Conversion',
       component: <KPICard {...kpiData[2]} />,
-      defaultSize: [3, 3],
+      defaultSize: [3, 3] as [number, number],
     },
     {
       id: 'kpi-4',
       title: 'Session',
       component: <KPICard {...kpiData[3]} />,
-      defaultSize: [3, 3],
+      defaultSize: [3, 3] as [number, number],
     },
     {
       id: 'analytics',
@@ -298,7 +298,7 @@ const Dashboard: React.FC = () => {
           </Box>
         </Widget>
       ),
-      defaultSize: [8, 8],
+      defaultSize: [8, 8] as [number, number],
     },
     {
       id: 'summary',
@@ -384,7 +384,7 @@ const Dashboard: React.FC = () => {
           </Box>
         </Widget>
       ),
-      defaultSize: [4, 8],
+      defaultSize: [4, 8] as [number, number],
     },
     {
       id: 'data-table',
@@ -404,12 +404,10 @@ const Dashboard: React.FC = () => {
             columns={tableColumns} 
             data={filteredData}
             pagination
-            rowsPerPageOptions={[5, 10, 25]}
-            defaultRowsPerPage={10}
           />
         </Widget>
       ),
-      defaultSize: [12, 7],
+      defaultSize: [12, 7] as [number, number],
     },
   ], [kpiData, filteredData, data, isRefreshing, handleSearch, handleClearSearch, handleRefresh, handleExport, tableColumns]);
 
@@ -489,8 +487,7 @@ const Dashboard: React.FC = () => {
             data={filteredData}
             filename="dashboard-data"
             onExport={handleExport}
-                aria-label="Export data"
-                fullWidth={isSmall}
+            aria-label="Export data"
           />
         </Box>
       </Box>
@@ -698,12 +695,10 @@ const Dashboard: React.FC = () => {
                 onDownload={() => handleExport('csv', { type: 'table' })}
                 height={400}
           >
-            <DataTable
-              columns={tableColumns}
-                  data={filteredData}
-                  pagination
-                  rowsPerPageOptions={[5, 10, 25]}
-                  defaultRowsPerPage={10}
+            <DataTable 
+              columns={tableColumns} 
+              data={filteredData}
+              pagination
             />
           </Widget>
             </GridItem>

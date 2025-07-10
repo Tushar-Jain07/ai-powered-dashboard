@@ -11,6 +11,7 @@ import {
   Typography,
   Tooltip,
   Fade,
+  Button,
 } from '@mui/material';
 import {
   DarkMode as DarkIcon,
@@ -154,7 +155,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
   return (
     <Box>
       <Tooltip title="Change theme">
-        <IconButton
+        <Button
           onClick={handleMenuOpen}
           color="inherit"
           size={size}
@@ -177,7 +178,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
             mode === 'system' ? 'Auto' : 
             mode === 'dark' ? 'Dark' : 'Light'
           )}
-        </IconButton>
+        </Button>
       </Tooltip>
       
       <Menu

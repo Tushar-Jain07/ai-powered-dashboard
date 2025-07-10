@@ -4,7 +4,7 @@
   "description": "AI-Powered Analytics Dashboard with React frontend and Node.js backend",
   "main": "index.js",
   "scripts": {
-    "start": "npm run start:frontend",
+    "start": "npm run dev",
     "start:frontend": "cd frontend && npm run dev",
     "start:backend": "cd backend && cross-env PORT=5003 npm start",
     "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",

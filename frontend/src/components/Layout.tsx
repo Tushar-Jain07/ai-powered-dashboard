@@ -249,7 +249,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               unmountOnExit
             >
               <List component="div" disablePadding>
-                {renderNavigationItems(item.children, level + 1)}
+                {renderNavigationItems(item.children || [], level + 1)}
               </List>
             </Collapse>
           )}
@@ -491,7 +491,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       bgcolor: 'primary.main',
                     }}
                   >
-                    {user?.displayName?.charAt(0) || 'U'}
+                    {(user as any)?.displayName?.charAt(0) || 'U'}
                   </Avatar>
                 }
                 endIcon={<ArrowDownIcon />}
@@ -506,7 +506,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 <Box sx={{ textAlign: 'left', display: { xs: 'none', sm: 'block' } }}>
                   <Typography variant="body2" component="span" fontWeight={500}>
-                    {user?.displayName || 'User'}
+                    {(user as any)?.displayName || 'User'}
                   </Typography>
                   <Typography 
                     variant="caption" 
@@ -669,7 +669,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               <ListItemText
                 primary={notification.message}
-                secondary={notification.timestamp}
+                secondary={(notification as any).timestamp}
                 primaryTypographyProps={{ 
                   variant: 'body2', 
                   fontWeight: 500

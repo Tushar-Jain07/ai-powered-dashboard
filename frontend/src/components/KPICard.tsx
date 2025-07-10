@@ -102,7 +102,7 @@ const KPICard: React.FC<KPICardProps> = ({
           left: 0,
           width: '100%',
           height: '4px',
-          backgroundColor: change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'primary.main',
+          backgroundColor: (change ?? 0) > 0 ? 'success.main' : (change ?? 0) < 0 ? 'error.main' : 'primary.main',
           opacity: 0,
           transition: 'opacity 0.3s ease-in-out',
         },

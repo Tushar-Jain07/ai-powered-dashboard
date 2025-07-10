@@ -1,28 +1,45 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI only if API key is available
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  const OpenAI = require('openai');
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // Create Express app
 const app = express();
 
 // Middleware
+// Dynamically determine allowed origins
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['*'] // Allow all origins in production for now
+  : [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3003'
+    ];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [
-        'https://ai-powered-dashboard.vercel.app',
-        'https://ai-powered-dashboard-*.vercel.app'
-      ]
-    : [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:3003'
-      ],
-  credentials: true
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // In production, allow all origins for now
+    if (process.env.NODE_ENV === 'production') {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +52,12 @@ app.use((req, res, next) => {
 
 // Routes
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running', environment: process.env.NODE_ENV });
+  res.json({ 
+    status: 'ok', 
+    message: 'Server is running', 
+    environment: process.env.NODE_ENV,
+    openai_configured: !!openai
+  });
 });
 
 // Simple test endpoint
@@ -106,6 +128,12 @@ app.get('/api/dashboard/analytics', (req, res) => {
 // AI chat endpoint
 app.post('/api/chat', async (req, res) => {
   try {
+    if (!openai) {
+      return res.status(500).json({ 
+        error: 'OpenAI API key not configured. Please add OPENAI_API_KEY environment variable.' 
+      });
+    }
+
     const { prompt, messages } = req.body;
 
     // Basic guard
