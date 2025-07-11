@@ -4,7 +4,10 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": { 
+        "distDir": "frontend/dist",
+        "buildCommand": "cd frontend && npm install && npm run build"
+      }
     },
     {
       "src": "backend/api/index.js",
@@ -21,8 +24,7 @@
     { "src": "^/robots.txt", "dest": "/frontend/dist/robots.txt" },
     { 
       "src": "/(.*)", 
-      "dest": "/frontend/dist/index.html",
-      "headers": { "Cache-Control": "s-maxage=0" }
+      "dest": "/frontend/dist/index.html"
     }
   ]
 } 
