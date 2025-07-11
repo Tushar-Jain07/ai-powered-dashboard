@@ -220,4 +220,60 @@ export const mlApi = {
   },
 };
 
+// Utility functions for API health and connectivity
+export const apiUtils = {
+  // Check if API is reachable
+  checkApiHealth: async () => {
+    try {
+      const response = await api.get('/health');
+      return {
+        status: 'healthy',
+        data: response.data,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error: any) {
+      return {
+        status: 'unhealthy',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      };
+    }
+  },
+
+  // Test API connectivity with timeout
+  testConnectivity: async (timeout = 5000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await api.get('/health', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return {
+        connected: true,
+        responseTime: Date.now(),
+        data: response.data
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      return {
+        connected: false,
+        error: error.message,
+        timeout: error.name === 'AbortError'
+      };
+    }
+  },
+
+  // Get current API configuration
+  getApiConfig: () => ({
+    baseURL: API_URL,
+    timeout: api.defaults.timeout,
+    environment: {
+      isProduction,
+      isDevelopment: !isProduction // Assuming isDevelopment is the opposite of isProduction
+    }
+  })
+};
+
 export default api; 
