@@ -4,7 +4,7 @@ import axios from 'axios';
 const isProduction = import.meta.env.PROD;
 // In production, use the Vercel backend URL; in development use proxy from vite.config.ts
 const API_URL = isProduction 
-  ? 'https://ai-dashmind-hvvwux5yy-tushar-jain07s-projects.vercel.app' 
+  ? 'https://ai-dashmind-hvvwux5yy-tushar-jain07s-projects.vercel.app/api' 
   : '/api';
 
 // Create axios instance
