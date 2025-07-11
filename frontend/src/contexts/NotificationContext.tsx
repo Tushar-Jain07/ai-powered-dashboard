@@ -6,6 +6,8 @@ interface Notification {
   message: string;
   type: AlertColor;
   duration?: number;
+  title?: string;
+  time?: string;
 }
 
 interface NotificationContextType {

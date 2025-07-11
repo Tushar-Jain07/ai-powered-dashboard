@@ -4,7 +4,7 @@
   "description": "Backend for AI-Powered Analytics Dashboard",
   "main": "src/index.js",
   "scripts": {
-    "start": "cross-env PORT=5003 NODE_OPTIONS=--no-deprecation node src/index.js",
+    "start": "cross-env PORT=5005 NODE_OPTIONS=--no-deprecation node src/index.js",
     "dev": "nodemon src/index.js",
     "build": "echo \"No build step required for backend\" && exit 0",
     "vercel-build": "echo \"Vercel build step for backend\" && exit 0",

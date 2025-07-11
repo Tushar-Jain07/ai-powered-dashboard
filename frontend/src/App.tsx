@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { CssBaseline, Box } from '@mui/material';
 
-// Pages
+// Import pages directly
 import Dashboard from './pages/Dashboard';
 import DataSources from './pages/DataSources';
 import Reports from './pages/Reports';
@@ -20,9 +20,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Contexts
 import { useAuth } from './contexts/AuthContext';
+import { useNotifications } from './contexts/NotificationContext';
 
 function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  const { notifications } = useNotifications();
+
+  // Show simple loading text if authentication is being checked
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <BrowserRouter>
@@ -35,11 +42,15 @@ function App() {
           {/* Public routes */}
           <Route 
             path="/login" 
-            element={isAuthenticated ? <Navigate to="/" /> : <Login />} 
+            element={
+              isAuthenticated ? <Navigate to="/" /> : <Login />
+            } 
           />
           <Route 
             path="/register" 
-            element={isAuthenticated ? <Navigate to="/" /> : <Register />} 
+            element={
+              isAuthenticated ? <Navigate to="/" /> : <Register />
+            } 
           />
           
           {/* Protected routes */}

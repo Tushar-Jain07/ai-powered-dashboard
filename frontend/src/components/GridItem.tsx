@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React from 'react';
 import { Grid, Box, useTheme, useMediaQuery } from '@mui/material';
 
 interface GridItemProps {
@@ -8,11 +8,9 @@ interface GridItemProps {
   md?: number;
   lg?: number;
   xl?: number;
-  height?: string | number;
-  minHeight?: string | number;
-  maxHeight?: string | number;
-  isAnimated?: boolean;
-  animationDelay?: number;
+  height?: string;
+  minHeight?: string;
+  maxHeight?: string;
   isFullHeight?: boolean;
   className?: string;
   id?: string;
@@ -30,8 +28,6 @@ const GridItem: React.FC<GridItemProps> = ({
   height,
   minHeight = '100px',
   maxHeight,
-  isAnimated = false,
-  animationDelay = 0,
   isFullHeight = false,
   className,
   id,
@@ -43,7 +39,7 @@ const GridItem: React.FC<GridItemProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isMedium = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Dynamically adjust grid sizes based on screen size
+  // Adjust grid sizes based on screen size
   const gridSizes = {
     xs,
     sm: sm || (isMobile ? 12 : xs),
@@ -63,21 +59,6 @@ const GridItem: React.FC<GridItemProps> = ({
           height: isFullHeight ? '100%' : height,
           minHeight,
           maxHeight,
-          opacity: isAnimated ? 0 : 1,
-          transform: isAnimated ? 'translateY(20px)' : 'translateY(0)',
-          animation: isAnimated
-            ? `fadeIn 0.5s ease-out ${animationDelay}s forwards`
-            : 'none',
-          '@keyframes fadeIn': {
-            '0%': {
-              opacity: 0,
-              transform: 'translateY(20px)',
-            },
-            '100%': {
-              opacity: 1,
-              transform: 'translateY(0)',
-            },
-          },
         }}
       >
         {children}
@@ -86,4 +67,4 @@ const GridItem: React.FC<GridItemProps> = ({
   );
 };
 
-export default memo(GridItem); 
+export default GridItem; 

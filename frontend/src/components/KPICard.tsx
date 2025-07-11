@@ -1,25 +1,33 @@
-import React, { memo } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
   Typography,
   Box,
-  useTheme,
+  Chip,
+  IconButton,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
-  TrendingFlat as TrendingFlatIcon,
+  Remove as RemoveIcon,
+  Info as InfoIcon,
+  Fullscreen as FullscreenIcon,
 } from '@mui/icons-material';
 
 interface KPICardProps {
   title: string;
   value: string;
-  change?: number;
-  icon?: React.ReactNode;
+  change: number;
+  icon: React.ReactNode;
+  description?: string;
   trend?: 'up' | 'down' | 'stable';
-  comparisonPeriod?: string;
+  color?: string;
+  onClick?: () => void;
+  onInfo?: () => void;
+  onFullscreen?: () => void;
 }
 
 const KPICard: React.FC<KPICardProps> = ({
@@ -27,202 +35,158 @@ const KPICard: React.FC<KPICardProps> = ({
   value,
   change,
   icon,
-  trend,
-  comparisonPeriod = 'vs last month',
+  description,
+  trend = 'stable',
+  color,
+  onClick,
+  onInfo,
+  onFullscreen,
 }) => {
   const theme = useTheme();
 
-  const getTrendIcon = () => {
-    if (change === undefined) return null;
-    
-    if (change > 0) {
-      return (
-        <Tooltip title={`Increased by ${change.toFixed(1)}%`}>
-          <TrendingUpIcon 
-            sx={{ 
-              color: 'success.main', 
-              fontSize: { xs: '1rem', sm: '1.25rem' },
-              verticalAlign: 'middle'
-            }} 
-            aria-label="trend up" 
-          />
-        </Tooltip>
-      );
-    } else if (change < 0) {
-      return (
-        <Tooltip title={`Decreased by ${Math.abs(change).toFixed(1)}%`}>
-          <TrendingDownIcon 
-            sx={{ 
-              color: 'error.main', 
-              fontSize: { xs: '1rem', sm: '1.25rem' },
-              verticalAlign: 'middle'
-            }} 
-            aria-label="trend down" 
-          />
-        </Tooltip>
-      );
-    }
-    
-    return (
-      <Tooltip title="No change">
-        <TrendingFlatIcon 
-          sx={{ 
-            color: 'text.secondary', 
-            fontSize: { xs: '1rem', sm: '1.25rem' },
-            verticalAlign: 'middle'
-          }} 
-          aria-label="no change" 
-        />
-      </Tooltip>
-    );
+  const getChangeColor = () => {
+    if (change > 0) return theme.palette.success.main;
+    if (change < 0) return theme.palette.error.main;
+    return theme.palette.warning.main;
   };
 
-  const getChangeColor = () => {
-    if (change === undefined) return 'text.secondary';
-    return change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'text.secondary';
+  const getChangeIcon = () => {
+    if (change > 0) return <TrendingUpIcon />;
+    if (change < 0) return <TrendingDownIcon />;
+    return <RemoveIcon />;
+  };
+
+  const getChangeText = () => {
+    const absChange = Math.abs(change);
+    if (change > 0) return `+${absChange}%`;
+    if (change < 0) return `-${absChange}%`;
+    return `${absChange}%`;
   };
 
   return (
-    <Card 
-      sx={{ 
+    <Card
+      sx={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'all 0.3s ease-in-out',
-        position: 'relative',
-        overflow: 'hidden',
-        '&:hover': {
-          boxShadow: theme.shadows[8],
-          transform: 'translateY(-4px)',
-        },
-        '&:after': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '4px',
-          backgroundColor: (change ?? 0) > 0 ? 'success.main' : (change ?? 0) < 0 ? 'error.main' : 'primary.main',
-          opacity: 0,
-          transition: 'opacity 0.3s ease-in-out',
-        },
-        '&:hover:after': {
-          opacity: 1,
-        }
+        cursor: onClick ? 'pointer' : 'default',
       }}
-      aria-label={`${title}: ${value}${change !== undefined ? `, ${change > 0 ? 'up' : 'down'} ${Math.abs(change).toFixed(1)}%` : ''}`}
-      tabIndex={0}
+      onClick={onClick}
     >
-      <CardContent 
-        component="div"
-        sx={{ 
-          p: { xs: 2, sm: 3 },
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          '&:last-child': { pb: { xs: 2, sm: 3 } },
-        }}
-      >
+      <CardContent sx={{ p: 3 }}>
+        {/* Header with actions */}
         <Box sx={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
-          alignItems: 'flex-start', 
+          alignItems: 'flex-start',
           mb: 2 
         }}>
-          <Typography 
-            variant="body2" 
-            color="text.secondary"
-            component="h3"
-            sx={{ 
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              fontWeight: 500,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}
-          >
-            {title}
-          </Typography>
-          {icon && (
-            <Box 
-              sx={{ 
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                p: 1,
+                borderRadius: 1,
+                bgcolor: color || theme.palette.primary.main,
+                color: 'white',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: { xs: 32, sm: 40 },
-                height: { xs: 32, sm: 40 },
-                borderRadius: '50%',
-                backgroundColor: 'primary.main',
-                color: 'white',
-                '& > *': {
-                  fontSize: { xs: '1rem', sm: '1.25rem' }
-                }
               }}
-              aria-hidden="true"
             >
               {icon}
             </Box>
+            {onInfo && (
+              <Tooltip title="More information">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onInfo();
+                  }}
+                >
+                  <InfoIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
+          
+          {onFullscreen && (
+            <Tooltip title="Fullscreen view">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFullscreen();
+                }}
+              >
+                <FullscreenIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
 
-        <Box>
-          <Typography 
-            variant="h4" 
-            component="p"
-            sx={{ 
-              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-              fontWeight: 700,
-              mb: 1,
-              lineHeight: 1.2
+        {/* Title */}
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            mb: 1,
+            fontWeight: 500,
+          }}
+        >
+          {title}
+        </Typography>
+
+        {/* Value */}
+        <Typography
+          variant="h4"
+          component="div"
+          sx={{
+            fontWeight: 700,
+            mb: 1,
+          }}
+        >
+          {value}
+        </Typography>
+
+        {/* Change indicator */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip
+            icon={getChangeIcon()}
+            label={getChangeText()}
+            size="small"
+            sx={{
+              bgcolor: getChangeColor(),
+              color: 'white',
+              fontWeight: 600,
+              '& .MuiChip-icon': {
+                color: 'white',
+              },
+            }}
+          />
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            vs last period
+          </Typography>
+        </Box>
+
+        {/* Description */}
+        {description && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              mt: 1,
+              display: 'block',
+              lineHeight: 1.4,
             }}
           >
-            {value}
+            {description}
           </Typography>
-
-          {change !== undefined && (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 0.5,
-                flexWrap: 'wrap'
-              }}
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {getTrendIcon()}
-              <Typography 
-                variant="body2" 
-                color={getChangeColor()}
-                component="span"
-                sx={{ 
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5
-                }}
-              >
-                {change > 0 ? '+' : ''}{change?.toFixed(1)}%
-              </Typography>
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                component="span"
-                sx={{ 
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  ml: 0.5
-                }}
-              >
-                {comparisonPeriod}
-              </Typography>
-            </Box>
-          )}
-        </Box>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-export default memo(KPICard); 
+export default KPICard; 

@@ -1,192 +1,199 @@
-import React, { useState } from 'react';
-import { Box, Typography, Paper, Grid } from '@mui/material';
-import LineChart from '../components/charts/LineChart';
-import BarChart from '../components/charts/BarChart';
-import PieChart from '../components/charts/PieChart';
-import DataTable from '../components/DataTable';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
+  useTheme,
+  useMediaQuery,
+  CircularProgress,
+  Fade,
+  Zoom,
+  Slide,
+} from '@mui/material';
+import {
+  TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
+  BarChart as BarChartIcon,
+  PieChart as PieChartIcon,
+  Timeline as TimelineIcon,
+  Assessment as AssessmentIcon,
+  Download as DownloadIcon,
+  Refresh as RefreshIcon,
+  Add as AddIcon,
+} from '@mui/icons-material';
 import KPICard from '../components/KPICard';
-import Widget from '../components/Widget';
+import BarChart from '../components/charts/BarChart';
+import LineChart from '../components/charts/LineChart';
+import PieChart from '../components/charts/PieChart';
 
 const Reports: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [loading, setLoading] = useState(false);
+  const [reports, setReports] = useState([]);
 
-  // Mock data
-  const reports = [
+  const kpiData = [
     {
-      id: '1',
-      name: 'Monthly Sales Report',
-      type: 'Sales',
-      lastGenerated: '2023-05-15',
-      status: 'Generated',
+      title: 'Total Reports',
+      value: '1,234',
+      change: 12.5,
+      icon: <AssessmentIcon />,
     },
     {
-      id: '2',
-      name: 'Customer Analytics',
-      type: 'Analytics',
-      lastGenerated: '2023-05-14',
-      status: 'Generated',
+      title: 'Active Reports',
+      value: '856',
+      change: 8.2,
+      icon: <BarChartIcon />,
     },
     {
-      id: '3',
-      name: 'Product Performance',
-      type: 'Performance',
-      lastGenerated: '2023-05-10',
-      status: 'Pending',
+      title: 'Generated Today',
+      value: '45',
+      change: 15.3,
+      icon: <TimelineIcon />,
+    },
+    {
+      title: 'Failed Reports',
+      value: '12',
+      change: -5.2,
+      icon: <TrendingDownIcon />,
     },
   ];
 
-  const mockSalesData = [
-    { month: 'Jan', sales: 12000, target: 10000 },
-    { month: 'Feb', sales: 15000, target: 12000 },
-    { month: 'Mar', sales: 18000, target: 15000 },
-    { month: 'Apr', sales: 22000, target: 18000 },
-    { month: 'May', sales: 25000, target: 20000 },
-    { month: 'Jun', sales: 28000, target: 22000 },
-  ];
+  const chartData = {
+    bar: [
+      { month: 'Jan', reports: 65 },
+      { month: 'Feb', reports: 59 },
+      { month: 'Mar', reports: 80 },
+      { month: 'Apr', reports: 81 },
+      { month: 'May', reports: 56 },
+      { month: 'Jun', reports: 55 },
+    ],
+    line: [
+      { month: 'Jan', successRate: 85 },
+      { month: 'Feb', successRate: 88 },
+      { month: 'Mar', successRate: 92 },
+      { month: 'Apr', successRate: 89 },
+      { month: 'May', successRate: 95 },
+      { month: 'Jun', successRate: 91 },
+    ],
+    pie: [
+      { name: 'Completed', value: 65, color: '#4BC0C0' },
+      { name: 'In Progress', value: 20, color: '#FFD93D' },
+      { name: 'Failed', value: 10, color: '#FF6384' },
+      { name: 'Pending', value: 5, color: '#9966FF' },
+    ],
+  };
 
-  const mockCustomerData = [
-    { name: 'New', value: 150 },
-    { name: 'Returning', value: 250 },
-    { name: 'Loyal', value: 100 },
-  ];
+  const handleRefresh = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
 
-  const mockProductData = [
-    { product: 'Product A', sales: 5000, revenue: 25000 },
-    { product: 'Product B', sales: 3500, revenue: 17500 },
-    { product: 'Product C', sales: 4200, revenue: 21000 },
-    { product: 'Product D', sales: 2800, revenue: 14000 },
-    { product: 'Product E', sales: 3200, revenue: 16000 },
-  ];
-
-  const reportColumns = [
-    { id: 'name', label: 'Report Name', minWidth: 170 },
-    { id: 'type', label: 'Type', minWidth: 100 },
-    { id: 'lastGenerated', label: 'Last Generated', minWidth: 120 },
-    { id: 'status', label: 'Status', minWidth: 100 },
-  ];
-
-  const handleReportSelect = (report: any) => {
-    setSelectedReport(report);
+  const handleExport = (format: string) => {
+    console.log(`Exporting reports in ${format} format`);
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Reports
-      </Typography>
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Typography variant="h6" gutterBottom>
-            Available Reports
+    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+      {/* Header */}
+      <Slide direction="down" in={true} timeout={500}>
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Reports
           </Typography>
-          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <DataTable
-              columns={reportColumns}
-              data={reports}
-              onRowClick={handleReportSelect}
-            />
-          </Paper>
+          <Typography variant="body1" color="text.secondary">
+            Generate and manage analytical reports
+          </Typography>
+        </Box>
+      </Slide>
+
+      {/* KPI Cards */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {kpiData.map((kpi, index) => (
+          <Grid item xs={12} sm={6} md={3} key={kpi.title}>
+            <Zoom in={true} timeout={600 + index * 100}>
+              <div>
+                <KPICard {...kpi} />
+              </div>
+            </Zoom>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Charts */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={8}>
+          <Fade in={true} timeout={800}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Reports Generated Over Time</Typography>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size="small"
+                      startIcon={<RefreshIcon />}
+                      onClick={handleRefresh}
+                      disabled={loading}
+                    >
+                      Refresh
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<DownloadIcon />}
+                      onClick={() => handleExport('csv')}
+                    >
+                      Export
+                    </Button>
+                  </Box>
+                </Box>
+                <Box sx={{ height: 300 }}>
+                  <BarChart data={chartData.bar} xKey="month" yKeys={[{ key: 'reports', name: 'Reports', color: '#36A2EB' }]} />
+                </Box>
+              </CardContent>
+            </Card>
+          </Fade>
         </Grid>
-        
-        <Grid item xs={12} md={8}>
-          {selectedReport ? (
-            <>
-              <Typography variant="h5" gutterBottom>
-                {selectedReport.name}
-              </Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <KPICard
-                    title="Total Sales"
-                    value="$125,000"
-                    trend="up"
-                    change={12.5}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <KPICard
-                    title="Orders"
-                    value="1,250"
-                    trend="up"
-                    change={8.3}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <KPICard
-                    title="Customers"
-                    value="500"
-                    trend="up"
-                    change={15.2}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <KPICard
-                    title="Conversion Rate"
-                    value="3.2%"
-                    trend="down"
-                    change={-0.5}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Widget
-                    id="sales-trend"
-                    title="Sales Trend vs Target"
-                    loading={false}
+
+        <Grid item xs={12} lg={4}>
+          <Fade in={true} timeout={900}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Report Status Distribution
+                </Typography>
+                <Box sx={{ height: 300 }}>
+                  <PieChart data={chartData.pie} />
+                </Box>
+              </CardContent>
+            </Card>
+          </Fade>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Fade in={true} timeout={1000}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6">Success Rate Trend</Typography>
+                  <Button
+                    size="small"
+                    startIcon={<AddIcon />}
+                    variant="outlined"
                   >
-                    <LineChart
-                      data={mockSalesData}
-                      xKey="month"
-                      yKeys={[
-                        { key: 'sales', name: 'Sales', color: '#2196f3' },
-                        { key: 'target', name: 'Target', color: '#ff9800' },
-                      ]}
-                      height={300}
-                    />
-                  </Widget>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Widget
-                    id="customer-distribution"
-                    title="Customer Distribution"
-                    loading={false}
-                  >
-                    <PieChart
-                      data={mockCustomerData}
-                      height={300}
-                    />
-                  </Widget>
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <Widget
-                    id="product-performance"
-                    title="Product Performance"
-                    loading={false}
-                  >
-                    <BarChart
-                      data={mockProductData}
-                      xKey="product"
-                      yKeys={[
-                        { key: 'sales', name: 'Sales', color: '#4caf50' },
-                        { key: 'revenue', name: 'Revenue', color: '#9c27b0' },
-                      ]}
-                      height={300}
-                    />
-                  </Widget>
-                </Grid>
-              </Grid>
-            </>
-          ) : (
-            <Paper sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary">
-                Select a report to view details
-              </Typography>
-            </Paper>
-          )}
+                    New Report
+                  </Button>
+                </Box>
+                <Box sx={{ height: 300 }}>
+                  <LineChart data={chartData.line} xKey="month" yKeys={[{ key: 'successRate', name: 'Success Rate', color: '#4BC0C0' }]} />
+                </Box>
+              </CardContent>
+            </Card>
+          </Fade>
         </Grid>
       </Grid>
     </Box>

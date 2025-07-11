@@ -11,12 +11,15 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3003,
+    port: 3005,
     proxy: {
       '/api': {
-        target: 'http://localhost:5003',
+        target: 'http://localhost:5005',
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
   },
 }); 

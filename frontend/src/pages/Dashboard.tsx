@@ -6,9 +6,13 @@ import {
   useTheme,
   useMediaQuery,
   CircularProgress,
-  Fade,
   Tabs,
   Tab,
+  Card,
+  CardContent,
+  IconButton,
+  Tooltip,
+  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -18,6 +22,9 @@ import {
   FilterList as FilterIcon,
   ViewQuilt as ViewQuiltIcon,
   ViewList as ViewListIcon,
+  Fullscreen as FullscreenIcon,
+  Settings as SettingsIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
 import KPICard from '../components/KPICard';
 import Widget from '../components/Widget';
@@ -76,13 +83,12 @@ const Dashboard: React.FC = () => {
   const { addNotification } = useNotifications();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  // Generate mock data with memoization for better performance
+  // Generate mock data
   const generateMockData = useCallback(() => {
       const categories = ['Sales', 'Marketing', 'Operations', 'Finance', 'HR'];
     return Array.from({ length: 50 }, (_, i) => ({
@@ -227,317 +233,96 @@ const Dashboard: React.FC = () => {
     { id: 'status', label: 'Status', minWidth: 120 },
   ], []);
 
-  // Create widgets for the draggable dashboard
-  const dashboardWidgets = useMemo(() => [
-    {
-      id: 'search',
-      title: 'Search & Filter',
-      description: 'Filter data by various criteria',
-      component: (
-        <Widget
-          id="search-filters"
-          title="Search & Filter Data"
-          subtitle="Use advanced filters to narrow down results"
-          description="Filter by category, date range, value range, or create custom filters"
-        >
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
-            <AdvancedSearch
-              onSearch={handleSearch}
-              onClear={handleClearSearch}
-              placeholder="Search data points..."
-              searchFields={['name', 'category', 'value', 'status']}
-              categories={['Sales', 'Marketing', 'Operations', 'Finance', 'HR']}
-              dateRange={true}
-              numericRange={true}
-              saveFilters={true}
-            />
-          </Box>
-        </Widget>
-      ),
-      defaultSize: [12, 5] as [number, number],
-    },
-    {
-      id: 'kpi-1',
-      title: 'Revenue',
-      component: <KPICard {...kpiData[0]} />,
-      defaultSize: [3, 3] as [number, number],
-    },
-    {
-      id: 'kpi-2',
-      title: 'Users',
-      component: <KPICard {...kpiData[1]} />,
-      defaultSize: [3, 3] as [number, number],
-    },
-    {
-      id: 'kpi-3',
-      title: 'Conversion',
-      component: <KPICard {...kpiData[2]} />,
-      defaultSize: [3, 3] as [number, number],
-    },
-    {
-      id: 'kpi-4',
-      title: 'Session',
-      component: <KPICard {...kpiData[3]} />,
-      defaultSize: [3, 3] as [number, number],
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics',
-      description: 'Visual representation of data',
-      component: (
-        <Widget
-          id="analytics-widget"
-          title="Advanced Analytics"
-          description="Visual representation of filtered data"
-          loading={isRefreshing}
-          onRefresh={handleRefresh}
-          onDownload={() => handleExport('png', { type: 'chart' })}
-        >
-          <Box sx={{ p: { xs: 0, sm: 0 }, height: '400px' }}>
-            <AdvancedAnalytics data={filteredData} />
-          </Box>
-        </Widget>
-      ),
-      defaultSize: [8, 8] as [number, number],
-    },
-    {
-      id: 'summary',
-      title: 'Summary',
-      description: 'Statistical overview',
-      component: (
-        <Widget
-          id="data-summary"
-          title="Data Summary"
-          description="Statistical breakdown of current data"
-          loading={isRefreshing}
-        >
-          <Box sx={{ p: 3, height: '400px', overflow: 'auto' }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Summary Statistics
-            </Typography>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                <strong>Total Records:</strong> {filteredData.length}
-              </Typography>
-              <Typography variant="body2">
-                <strong>Average Value:</strong> {
-                  filteredData.length ? 
-                  (filteredData.reduce((sum, item) => sum + item.value, 0) / filteredData.length).toFixed(2) :
-                  '0'
-                }
-              </Typography>
-              <Typography variant="body2">
-                <strong>Min Value:</strong> {
-                  filteredData.length ? 
-                  Math.min(...filteredData.map(item => item.value)) :
-                  '0'
-                }
-              </Typography>
-              <Typography variant="body2">
-                <strong>Max Value:</strong> {
-                  filteredData.length ? 
-                  Math.max(...filteredData.map(item => item.value)) :
-                  '0'
-                }
-              </Typography>
-            </Box>
-
-            <Typography variant="subtitle1" gutterBottom>
-              Category Distribution
-            </Typography>
-            <Box>
-              {filteredData.length > 0 && 
-                Array.from(
-                  new Set(filteredData.map(item => item.category))
-                ).map(category => {
-                  const count = filteredData.filter(item => item.category === category).length;
-                  const percentage = Math.round((count / filteredData.length) * 100);
-                  
-                  return (
-                    <Box key={category} sx={{ mb: 1 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="body2">{category}</Typography>
-                        <Typography variant="body2">{count} ({percentage}%)</Typography>
-                      </Box>
-                      <Box 
-                        sx={{ 
-                          height: 4, 
-                          bgcolor: 'background.paper',
-                          borderRadius: 1,
-                          mt: 0.5,
-                          overflow: 'hidden'
-                        }}
-                      >
-                        <Box 
-                          sx={{ 
-                            height: '100%', 
-                            width: `${percentage}%`,
-                            bgcolor: 'primary.main',
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  );
-                })
-              }
-            </Box>
-          </Box>
-        </Widget>
-      ),
-      defaultSize: [4, 8] as [number, number],
-    },
-    {
-      id: 'data-table',
-      title: 'Data Table',
-      description: 'Detailed data records',
-      component: (
-        <Widget
-          id="data-table-widget"
-          title="Data Table"
-          subtitle={`Showing ${filteredData.length} of ${data.length} records`}
-          description="Detailed table view of all data points"
-          loading={isRefreshing}
-          onRefresh={handleRefresh}
-          onDownload={() => handleExport('csv', { type: 'table' })}
-        >
-          <DataTable 
-            columns={tableColumns} 
-            data={filteredData}
-            pagination
-          />
-        </Widget>
-      ),
-      defaultSize: [12, 7] as [number, number],
-    },
-  ], [kpiData, filteredData, data, isRefreshing, handleSearch, handleClearSearch, handleRefresh, handleExport, tableColumns]);
-
-  const handleSaveLayout = useCallback((layout: any) => {
-    // Save layout to localStorage or server
-    addNotification('Dashboard layout saved successfully!', 'success');
-  }, [addNotification]);
-
   if (isLoading) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center', 
-          justifyContent: 'center',
-          minHeight: '50vh' 
-        }}
-      >
-        <CircularProgress size={60} thickness={4} />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Loading Dashboard...
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box component="main">
-      <Fade in={!isLoading} timeout={500}>
-    <Box>
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', sm: 'row' },
-        justifyContent: 'space-between', 
-        alignItems: { xs: 'stretch', sm: 'center' }, 
-        mb: 3,
-        gap: { xs: 2, sm: 0 }
-      }}>
-        <Typography 
-          variant="h4" 
-              component="h1"
-          sx={{ 
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
-            mb: { xs: 1, sm: 0 }
-          }}
-        >
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
           Dashboard
         </Typography>
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 1,
-          flexDirection: { xs: 'column', sm: 'row' },
-          width: { xs: '100%', sm: 'auto' }
-        }}>
+        <Typography variant="body1" color="text.secondary">
+          Overview of your business metrics and KPIs
+        </Typography>
+      </Box>
+
+      {/* Action buttons */}
+      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
           <Button
             variant="contained"
-                color="primary"
-                startIcon={<RefreshIcon />}
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                aria-label="Refresh dashboard data"
-                fullWidth={isSmall}
-              >
-                {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          startIcon={<AddIcon />}
+        >
+          Add Widget
               </Button>
               <Button
                 variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => addNotification('Add new item clicked', 'info')}
-                aria-label="Add new item"
-                fullWidth={isSmall}
-          >
-            Add New
+          startIcon={<RefreshIcon />}
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>
-          <ExportButton
-            data={filteredData}
-            filename="dashboard-data"
-            onExport={handleExport}
-            aria-label="Export data"
-          />
-        </Box>
+        <Tooltip title="Fullscreen">
+          <IconButton>
+            <FullscreenIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-          {/* View Toggle */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      {/* Tab Navigation */}
+      <Box sx={{ mb: 3 }}>
             <Tabs 
               value={tabValue} 
               onChange={handleTabChange} 
-              aria-label="dashboard views"
-              variant={isMobile ? "fullWidth" : "standard"}
+          variant={isMobile ? "scrollable" : "standard"}
+          scrollButtons={isMobile ? "auto" : false}
             >
               <Tab 
-                icon={<ViewQuiltIcon />} 
-                label={!isMobile && "Customizable Dashboard"} 
-                iconPosition="start" 
-                id="tab-0" 
-                aria-controls="tabpanel-0" 
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ViewQuiltIcon fontSize="small" />
+                Grid View
+              </Box>
+            } 
               />
               <Tab 
-                icon={<ViewListIcon />} 
-                label={!isMobile && "Standard Dashboard"} 
-                iconPosition="start" 
-                id="tab-1" 
-                aria-controls="tabpanel-1"
+            label={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ViewListIcon fontSize="small" />
+                List View
+              </Box>
+            } 
               />
             </Tabs>
           </Box>
 
-          {/* Customizable Dashboard View */}
+      {/* Tab Panels */}
           <TabPanel value={tabValue} index={0}>
-            <DraggableDashboard 
-              widgets={dashboardWidgets}
-              onSaveLayout={handleSaveLayout}
-              title="Customizable Dashboard"
-              subtitle="Drag and resize widgets to personalize your view"
-            />
-          </TabPanel>
+        {/* KPI Cards */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {kpiData.map((kpi) => (
+              <Box key={kpi.title} sx={{ width: { xs: '100%', sm: '48%', md: '23%' }, mb: 2 }}>
+                <KPICard {...kpi} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
 
-          {/* Standard Dashboard View */}
-          <TabPanel value={tabValue} index={1}>
-      {/* Search and Filters */}
-            <GridItem isAnimated animationDelay={0.4}>
+        {/* Search and Table */}
               <Widget
-                id="search-filters"
-                title="Search & Filter Data"
-                subtitle="Use advanced filters to narrow down results"
-                description="Filter by category, date range, value range, or create custom filters"
-              >
-                <Box sx={{ p: { xs: 2, sm: 3 } }}>
+          title="Data Analysis" 
+          subtitle="Explore and filter your data"
+          id="data-analysis-widget"
+        >
+          <Box sx={{ p: 2 }}>
           <AdvancedSearch
             onSearch={handleSearch}
             onClear={handleClearSearch}
@@ -546,165 +331,41 @@ const Dashboard: React.FC = () => {
             categories={['Sales', 'Marketing', 'Operations', 'Finance', 'HR']}
             dateRange={true}
             numericRange={true}
-                    saveFilters={true}
                   />
                 </Box>
-              </Widget>
-            </GridItem>
 
-            {/* KPI Cards */}
-            <Box sx={{ mb: 4, mt: 3 }}>
-              <Box 
-                component="div" 
-                display="grid" 
-                gridTemplateColumns={{
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(4, 1fr)',
-                }}
-                gap={3}
-              >
-                {kpiData.map((kpi, index) => (
-                  <GridItem 
-                    key={`kpi-${index}`} 
-                    isAnimated 
-                    animationDelay={0.1 * index}
-                  >
-                    <KPICard {...kpi} />
-                  </GridItem>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Analytics Widgets */}
-            <Box 
-              component="div" 
-              display="grid" 
-              gridTemplateColumns={{
-                xs: '1fr',
-                lg: '2fr 1fr',
-              }}
-              gap={3}
-              sx={{ my: 3 }}
-            >
-              <GridItem isAnimated animationDelay={0.5}>
-          <Widget
-            id="analytics"
-            title="Advanced Analytics"
-                  description="Visual representation of filtered data"
-                  loading={isRefreshing}
-                  onRefresh={handleRefresh}
-                  onDownload={() => handleExport('png', { type: 'chart' })}
-          >
-                  <Box sx={{ p: { xs: 0, sm: 0 }, height: '400px' }}>
-            <AdvancedAnalytics data={filteredData} />
-                  </Box>
-                </Widget>
-              </GridItem>
-              <GridItem isAnimated animationDelay={0.6}>
-                <Widget
-                  id="data-summary"
-                  title="Data Summary"
-                  description="Statistical breakdown of current data"
-                  loading={isRefreshing}
-                >
-                  <Box sx={{ p: 3, height: '400px', overflow: 'auto' }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Summary Statistics
-                    </Typography>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="body2">
-                        <strong>Total Records:</strong> {filteredData.length}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Average Value:</strong> {
-                          filteredData.length ? 
-                          (filteredData.reduce((sum, item) => sum + item.value, 0) / filteredData.length).toFixed(2) :
-                          '0'
-                        }
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Min Value:</strong> {
-                          filteredData.length ? 
-                          Math.min(...filteredData.map(item => item.value)) :
-                          '0'
-                        }
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Max Value:</strong> {
-                          filteredData.length ? 
-                          Math.max(...filteredData.map(item => item.value)) :
-                          '0'
-                        }
-                      </Typography>
-                    </Box>
-
-                    <Typography variant="subtitle1" gutterBottom>
-                      Category Distribution
-                    </Typography>
-                    <Box>
-                      {filteredData.length > 0 && 
-                        Array.from(
-                          new Set(filteredData.map(item => item.category))
-                        ).map(category => {
-                          const count = filteredData.filter(item => item.category === category).length;
-                          const percentage = Math.round((count / filteredData.length) * 100);
-                          
-                          return (
-                            <Box key={category} sx={{ mb: 1 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Typography variant="body2">{category}</Typography>
-                                <Typography variant="body2">{count} ({percentage}%)</Typography>
-                              </Box>
-                              <Box 
-                                sx={{ 
-                                  height: 4, 
-                                  bgcolor: 'background.paper',
-                                  borderRadius: 1,
-                                  mt: 0.5,
-                                  overflow: 'hidden'
-                                }}
-                              >
-                                <Box 
-                                  sx={{ 
-                                    height: '100%', 
-                                    width: `${percentage}%`,
-                                    bgcolor: 'primary.main',
-                                  }}
-                                />
-                              </Box>
-                            </Box>
-                          );
-                        })
-                      }
-                    </Box>
-                  </Box>
-          </Widget>
-              </GridItem>
-            </Box>
-
-            {/* Data Table */}
-            <GridItem isAnimated animationDelay={0.7}>
-          <Widget
-            id="data-table"
-                title="Data Table"
-                subtitle={`Showing ${filteredData.length} of ${data.length} records`}
-                description="Detailed table view of all data points"
-                loading={isRefreshing}
-                onRefresh={handleRefresh}
-                onDownload={() => handleExport('csv', { type: 'table' })}
-                height={400}
-          >
+          <Box sx={{ mt: 2 }}>
             <DataTable 
               columns={tableColumns} 
               data={filteredData}
-              pagination
+              pagination={true}
+              exportable={true}
+              onExport={handleExport}
             />
+          </Box>
           </Widget>
-            </GridItem>
           </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        {/* List View Content */}
+        <Box sx={{ mb: 4 }}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Data List</Typography>
+                <ExportButton onExport={handleExport} data={filteredData} />
+              </Box>
+              <DataTable
+                columns={tableColumns}
+                data={filteredData}
+                pagination={true}
+                exportable={false}
+                density="compact"
+              />
+            </CardContent>
+          </Card>
         </Box>
-      </Fade>
+      </TabPanel>
     </Box>
   );
 };

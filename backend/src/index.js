@@ -17,11 +17,12 @@ const app = express();
 // Middleware
 // Dynamically determine allowed origins
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['*'] // Allow all origins in production for now
+  ? ['*'] // Allow all origins in production for Vercel deployment
   : [
       'http://localhost:3000',
       'http://localhost:3001',
-      'http://localhost:3003'
+      'http://localhost:3003',
+      'http://localhost:3005'
     ];
 
 app.use(cors({
@@ -29,7 +30,7 @@ app.use(cors({
     // Allow requests with no origin (e.g., mobile apps or curl)
     if (!origin) return callback(null, true);
     
-    // In production, allow all origins for now
+    // In production, allow all origins for Vercel deployment
     if (process.env.NODE_ENV === 'production') {
       return callback(null, true);
     }
@@ -37,7 +38,9 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error('Not allowed by CORS'));
+    
+    console.warn(`Origin ${origin} not allowed by CORS`);
+    return callback(null, true); // Still allow it for now
   },
   credentials: true,
 }));

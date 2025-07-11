@@ -12,13 +12,17 @@
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
+    { "src": "/api/(.*)", "dest": "/backend/api/index.js" },
+    { "src": "^/assets/(.*)", "dest": "/frontend/dist/assets/$1" },
+    { "src": "^/favicon.ico", "dest": "/frontend/dist/favicon.ico" },
+    { "src": "^/logo192.png", "dest": "/frontend/dist/logo192.png" },
+    { "src": "^/logo512.png", "dest": "/frontend/dist/logo512.png" },
+    { "src": "^/manifest.json", "dest": "/frontend/dist/manifest.json" },
+    { "src": "^/robots.txt", "dest": "/frontend/dist/robots.txt" },
+    { 
+      "src": "/(.*)", 
+      "dest": "/frontend/dist/index.html",
+      "headers": { "Cache-Control": "s-maxage=0" }
     }
   ]
 } 

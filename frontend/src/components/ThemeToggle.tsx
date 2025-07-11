@@ -7,17 +7,14 @@ import {
   MenuItem, 
   ListItemIcon,
   ListItemText,
-  Switch,
   Typography,
   Tooltip,
-  Fade,
   Button,
 } from '@mui/material';
 import {
   DarkMode as DarkIcon,
   LightMode as LightIcon,
   SettingsBrightness as AutoIcon,
-  FormatPaint as ThemeIcon,
   KeyboardArrowDown as ArrowDownIcon,
 } from '@mui/icons-material';
 
@@ -36,8 +33,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
 }) => {
   const { theme, setTheme, mode } = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [rotationDeg, setRotationDeg] = useState(0);
   
   // Detect system preference changes
   useEffect(() => {
@@ -76,9 +71,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     setTheme(newTheme);
     handleMenuClose();
     
-    // Add animation when theme changes
-    setRotationDeg(prev => prev + 360);
-    
     // Store preference in localStorage
     localStorage.setItem('theme-preference', newTheme);
   };
@@ -111,41 +103,8 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
           color="inherit"
           aria-label="Toggle theme"
           size={size}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          sx={{
-            transition: 'all 0.3s ease',
-            transform: `rotate(${rotationDeg}deg)`,
-            '&:hover': {
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.1)' 
-                : 'rgba(0,0,0,0.05)',
-            }
-          }}
         >
-          <Box sx={{ 
-            position: 'relative', 
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: iconSizePx,
-            height: iconSizePx,
-          }}>
-            <Fade in={!isHovering} timeout={400}>
-              <Box sx={{ position: 'absolute' }}>
-                <ThemeIconComponent fontSize={size} />
-              </Box>
-            </Fade>
-            <Fade in={isHovering} timeout={400}>
-              <Box sx={{ position: 'absolute' }}>
-                {effectiveMode === 'dark' ? (
-                  <LightIcon fontSize={size} />
-                ) : (
-                  <DarkIcon fontSize={size} />
-                )}
-              </Box>
-            </Fade>
-          </Box>
+          <ThemeIconComponent fontSize={size} />
         </IconButton>
       </Tooltip>
     );
@@ -167,11 +126,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
           variant={position === 'settings' ? 'outlined' : 'text'}
           sx={{
             minWidth: position === 'settings' ? 120 : 'auto',
-            '&:hover': {
-              background: theme => theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.1)' 
-                : 'rgba(0,0,0,0.05)',
-            }
           }}
         >
           {showLabel && (
@@ -194,7 +148,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
           sx={{
             minWidth: 180,
             py: 1,
-            transition: 'background-color 0.2s',
           }}
         >
           <ListItemIcon>
@@ -209,7 +162,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
           sx={{
             minWidth: 180,
             py: 1,
-            transition: 'background-color 0.2s',
           }}
         >
           <ListItemIcon>
@@ -224,7 +176,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
           sx={{
             minWidth: 180,
             py: 1,
-            transition: 'background-color 0.2s',
           }}
         >
           <ListItemIcon>

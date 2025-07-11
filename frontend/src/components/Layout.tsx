@@ -23,6 +23,7 @@ import {
   Badge,
   Tooltip,
   LinearProgress,
+  Chip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -54,6 +55,23 @@ interface NavigationItem {
   path: string;
   icon: React.ReactNode;
   children?: NavigationItem[];
+}
+
+// Extended interfaces for User and Notification
+interface ExtendedUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+}
+
+interface ExtendedNotification {
+  id: string;
+  message: string;
+  type: string;
+  title: string;
+  time: string;
 }
 
 const navigationItems: NavigationItem[] = [
@@ -169,6 +187,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return items.map((item) => {
       const isItemActive = isActive(item.path);
       const hasChildren = item.children && item.children.length > 0;
+      const isExpanded = expandedItems[item.title] || false;
       
       return (
         <React.Fragment key={item.title}>
@@ -187,24 +206,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 pl: level * 2 + 2,
                 borderRadius: '8px',
                 mx: 1,
-                transition: theme.transitions.create(['background-color', 'box-shadow'], {
-                  duration: theme.transitions.duration.standard,
-                }),
                 '&.Mui-selected': {
-                  backgroundColor: theme => alpha(theme.palette.primary.main, 0.1),
+                  backgroundColor: theme => theme.palette.primary.main + '20',
                   '&::before': {
                     content: '""',
                     position: 'absolute',
                     left: 0,
                     top: '25%',
                     height: '50%',
-                    width: 3,
+                    width: 4,
                     backgroundColor: theme.palette.primary.main,
-                    borderRadius: '0 4px 4px 0',
+                    borderRadius: '0 2px 2px 0',
                   },
-                  '&:hover': {
-                    backgroundColor: theme => alpha(theme.palette.primary.main, 0.2),
-                  }
                 },
               }}
             >
@@ -214,40 +227,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   mr: drawerOpen ? 2 : 'auto',
                   justifyContent: 'center',
                   color: isItemActive ? 'primary.main' : 'inherit',
-                  transition: theme.transitions.create('color', {
-                    duration: theme.transitions.duration.standard,
-                  }),
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              <ListItemText 
-                primary={item.title} 
-                sx={{ 
-                  opacity: drawerOpen ? 1 : 0,
-                  transition: theme.transitions.create('opacity', {
-                    duration: theme.transitions.duration.standard,
-                  }),
-                  '& .MuiTypography-root': {
-                    fontWeight: isItemActive ? 500 : 400,
-                    fontSize: '0.9rem',
-                  }
-                }}
-              />
+              {drawerOpen && (
+                <ListItemText 
+                  primary={item.title}
+                  sx={{
+                    '& .MuiListItemText-primary': {
+                      fontWeight: isItemActive ? 600 : 400,
+                      color: isItemActive ? 'primary.main' : 'inherit',
+                    },
+                  }}
+                />
+              )}
               {hasChildren && drawerOpen && (
-                <Box component="span" sx={{ ml: 'auto' }}>
-                  {expandedItems[item.title] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </Box>
+                <IconButton
+                  edge="end"
+                  size="small"
+                  onClick={() => handleExpandItem(item.title)}
+                >
+                  {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
               )}
             </ListItemButton>
           </ListItem>
-          
           {hasChildren && (
-            <Collapse 
-              in={drawerOpen && expandedItems[item.title]} 
-              timeout="auto" 
-              unmountOnExit
-            >
+            <Collapse in={isExpanded && drawerOpen} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
                 {renderNavigationItems(item.children || [], level + 1)}
               </List>
@@ -258,220 +265,67 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     });
   };
 
-  const drawer = (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      height: '100%' 
-    }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: drawerOpen ? 'space-between' : 'center',
-          p: theme.spacing(drawerOpen ? 2 : 1),
-        }}
-      >
-        {drawerOpen && (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box
-              component="img"
-              src="/logo192.png"
-              alt="Logo"
-              sx={{ 
-                height: 32, 
-                width: 32,
-                mr: 1,
-                transition: 'transform 0.3s ease-in-out',
-                '&:hover': {
-                  transform: 'rotate(10deg)',
-                },
-              }}
-            />
-            <Typography 
-              variant="h6" 
-              component="div"
-              sx={{
-                fontSize: '1.2rem',
-                fontWeight: 600,
-                background: theme => 
-                  theme.palette.mode === 'dark'
-                    ? 'linear-gradient(45deg, #6b8aff, #c477ff)'
-                    : 'linear-gradient(45deg, #3f51b5, #7e57c2)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              AI Dashboard
-            </Typography>
-          </Box>
-        )}
-        {!isDesktop && (
-          <IconButton onClick={handleDrawerToggle} size="small" color="primary">
-            <ChevronLeftIcon />
-          </IconButton>
-        )}
-      </Box>
-      
-      <Divider sx={{ mb: 1 }} />
-      
-      <Box 
-        sx={{ 
-          flexGrow: 1,
-          overflowY: 'auto',
-          '&::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'rgba(0, 0, 0, 0.2)',
-            borderRadius: '3px',
-          },
-          '&:hover::-webkit-scrollbar-thumb': {
-            bgcolor: 'rgba(0, 0, 0, 0.3)',
-          }
-        }}
-      >
-        <List sx={{ px: 1 }}>
-          {renderNavigationItems(navigationItems)}
-        </List>
-      </Box>
-      
-      {drawerOpen && (
-        <Box 
-          sx={{ 
-            p: 2, 
-            display: 'flex',
-            flexDirection: 'column',
-            borderTop: 1, 
-            borderColor: 'divider',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <ThemeToggle variant="button" showLabel position="settings" size="small" />
-          </Box>
-          
-          <Button 
-            variant="text"
-            startIcon={<HelpIcon />}
-            size="small"
-            color="inherit"
-            sx={{ 
-              justifyContent: 'flex-start',
-              mb: 1,
-              textTransform: 'none',
-              fontWeight: 'normal',
-            }}
-          >
-            Help Center
-          </Button>
-          
-          <Button 
-            variant="text"
-            startIcon={<InfoIcon />}
-            size="small"
-            color="inherit"
-            sx={{ 
-              justifyContent: 'flex-start',
-              textTransform: 'none',
-              fontWeight: 'normal',
-            }}
-          >
-            About
-          </Button>
-        </Box>
-      )}
-    </Box>
-  );
-
-  // Calculate content based on drawer state and screen size
-  const contentMargin = drawerOpen && isDesktop ? `${drawerWidth}px` : 0;
-
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {loading && (
-        <LinearProgress 
-          sx={{ 
-            position: 'fixed', 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            zIndex: theme => theme.zIndex.drawer + 2 
-          }} 
-        />
-      )}
-    
-      <AppBar 
+    <Box sx={{ display: 'flex' }}>
+      {loading && <LinearProgress sx={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999 }} />}
+      
+      {/* App Bar */}
+      <AppBar
         position="fixed"
-        color="default"
-        elevation={0}
         sx={{
-          width: { md: `calc(100% - ${contentMargin})` },
-          ml: { md: contentMargin },
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          backdropFilter: 'blur(8px)',
-          backgroundColor: theme => 
-            theme.palette.mode === 'dark' 
-              ? 'rgba(18, 18, 18, 0.9)' 
-              : 'rgba(255, 255, 255, 0.9)',
-          borderBottom: 1,
-          borderColor: 'divider',
+          width: { md: drawerOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
+          ml: { md: drawerOpen ? `${drawerWidth}px` : 0 },
+          boxShadow: 1,
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {!isDesktop && (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-            
-            {(!drawerOpen || !isDesktop) && (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box
-                  component="img"
-                  src="/logo192.png"
-                  alt="Logo"
-                  sx={{ height: 32, width: 32, mr: 1 }}
-                />
-                <Typography 
-                  variant="h6" 
-                  noWrap 
-                  component="div"
-                  sx={{
-                    fontSize: '1.2rem',
-                    fontWeight: 600,
-                    background: theme => 
-                      theme.palette.mode === 'dark'
-                        ? 'linear-gradient(45deg, #6b8aff, #c477ff)'
-                        : 'linear-gradient(45deg, #3f51b5, #7e57c2)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                  }}
-                >
-                  AI Dashboard
-                </Typography>
-              </Box>
-            )}
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ThemeToggle />
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="toggle drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { md: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
 
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <Typography variant="h6" noWrap component="div">
+              AI-Powered Dashboard
+            </Typography>
+            
+            {/* App bar navigation for desktop */}
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, ml: 4 }}>
+              {navigationItems.map((item) => (
+                <Button
+                  key={item.title}
+                  component={Link}
+                  to={item.path}
+                  color="inherit"
+                  sx={{
+                    mx: 1,
+                    fontWeight: isActive(item.path) ? 600 : 400,
+                    opacity: isActive(item.path) ? 1 : 0.8,
+                  }}
+                  startIcon={item.icon}
+                >
+                  {item.title}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Right side tools */}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Theme Toggle */}
+            <ThemeToggle />
+            
+            {/* Notifications */}
             <Tooltip title="Notifications">
-              <IconButton
-                color="inherit"
-                aria-label="notifications"
+              <IconButton 
+                color="inherit" 
                 onClick={handleOpenNotifications}
-                sx={{ ml: 1 }}
+                size="large"
               >
                 <Badge badgeContent={notifications.length} color="error">
                   <NotificationsIcon />
@@ -479,231 +333,172 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </IconButton>
             </Tooltip>
             
-            <Box sx={{ ml: 2 }}>
-              <Button
-                onClick={handleOpenUserMenu}
-                color="inherit"
-                startIcon={
-                  <Avatar 
-                    sx={{ 
-                      width: 32, 
-                      height: 32,
-                      bgcolor: 'primary.main',
-                    }}
-                  >
-                    {(user as any)?.displayName?.charAt(0) || 'U'}
-                  </Avatar>
-                }
-                endIcon={<ArrowDownIcon />}
-                sx={{
-                  textTransform: 'none',
-                  '&:hover': {
-                    backgroundColor: theme => theme.palette.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.1)' 
-                      : 'rgba(0, 0, 0, 0.05)',
-                  }
-                }}
-              >
-                <Box sx={{ textAlign: 'left', display: { xs: 'none', sm: 'block' } }}>
-                  <Typography variant="body2" component="span" fontWeight={500}>
-                    {(user as any)?.displayName || 'User'}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    component="div" 
-                    sx={{ 
-                      opacity: 0.8,
-                      fontSize: '0.7rem'
-                    }}
-                  >
-                    {user?.email || 'user@example.com'}
+            <Menu
+              anchorEl={notificationsAnchor}
+              open={Boolean(notificationsAnchor)}
+              onClose={handleCloseNotifications}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              sx={{ mt: 1 }}
+              PaperProps={{
+                sx: { width: 320, maxHeight: 400 }
+              }}
+            >
+              <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+                <Typography variant="h6">Notifications</Typography>
+              </Box>
+              
+              {notifications.length === 0 ? (
+                <Box sx={{ p: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    No new notifications
                   </Typography>
                 </Box>
-              </Button>
-            </Box>
+              ) : (
+                notifications.map((notification, index) => (
+                  <MenuItem key={index} onClick={handleCloseNotifications}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      <Typography variant="subtitle2">
+                        {notification.title || 'Notification'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {notification.message}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                        {notification.time || new Date().toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </MenuItem>
+                ))
+              )}
+              
+              <Box sx={{ p: 1.5, borderTop: 1, borderColor: 'divider', textAlign: 'center' }}>
+                <Button size="small">View All</Button>
+              </Box>
+            </Menu>
+            
+            {/* User Menu */}
+            <Button
+              onClick={handleOpenUserMenu}
+              color="inherit"
+              sx={{ ml: 2 }}
+              endIcon={<ArrowDownIcon />}
+            >
+              <Avatar 
+                sx={{ 
+                  width: 32, 
+                  height: 32,
+                  mr: 1,
+                  bgcolor: 'primary.main',
+                }}
+                alt={user?.name || 'User'}
+                src={user?.avatar || undefined}
+              >
+                {user?.name ? user.name.charAt(0).toUpperCase() : <AccountIcon />}
+              </Avatar>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="body2" component="span">
+                  {user?.name || 'User'}
+                </Typography>
+              </Box>
+            </Button>
+            
+            <Menu
+              anchorEl={userMenuAnchor}
+              open={Boolean(userMenuAnchor)}
+              onClose={handleCloseUserMenu}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              sx={{ mt: 1 }}
+            >
+              <MenuItem component={Link} to="/profile" onClick={handleCloseUserMenu}>
+                <ListItemIcon>
+                  <ProfileIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Profile</ListItemText>
+              </MenuItem>
+              <MenuItem component={Link} to="/settings" onClick={handleCloseUserMenu}>
+                <ListItemIcon>
+                  <SettingsIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Settings</ListItemText>
+              </MenuItem>
+              <Divider />
+              <MenuItem onClick={() => { handleCloseUserMenu(); handleLogout(); }}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Logout</ListItemText>
+              </MenuItem>
+            </Menu>
           </Box>
         </Toolbar>
       </AppBar>
-      
-      <Box
-        component="nav"
+
+      {/* Navigation Drawer */}
+      <Drawer
+        variant={isDesktop ? "permanent" : "temporary"}
+        open={drawerOpen}
+        onClose={isDesktop ? undefined : handleDrawerToggle}
         sx={{
-          width: { md: drawerOpen ? drawerWidth : 0 },
+          width: drawerWidth,
           flexShrink: 0,
-          whiteSpace: 'nowrap',
-          boxSizing: 'border-box',
-          transition: theme.transitions.create('width', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.standard,
-          }),
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+          },
         }}
       >
-        <Drawer
-          variant={isDesktop ? "permanent" : "temporary"}
-          open={drawerOpen}
-          onClose={isDesktop ? undefined : handleDrawerToggle}
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            [`& .MuiDrawer-paper`]: {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              boxShadow: isDesktop ? 'none' : theme.shadows[3],
-              border: isDesktop ? undefined : 'none',
-            },
-          }}
-          PaperProps={{
-            elevation: isDesktop ? 0 : 4,
-            sx: {
-              backgroundColor: theme => 
-                theme.palette.mode === 'dark' ? 'background.default' : 'background.paper',
-            }
-          }}
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-      
+        <Toolbar sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          px: [1],
+        }}>
+          <Typography variant="h6" noWrap component="div" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+            <Box
+              component="img"
+              src="/logo192.png"
+              alt="Logo"
+              sx={{ height: 32, width: 32, mr: 1 }}
+            />
+            Dashboard
+          </Typography>
+          <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
+            <ChevronLeftIcon />
+          </IconButton>
+        </Toolbar>
+        
+        <Divider />
+        
+        <Box sx={{ overflow: 'auto', mt: 2 }}>
+          <List>{renderNavigationItems(navigationItems)}</List>
+        </Box>
+        
+        <Box sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', p: 2 }}>
+          <ChatAssistant />
+        </Box>
+      </Drawer>
+
+      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 3 },
-          width: { sm: `calc(100% - ${contentMargin})` },
-          ml: { md: 0 },
-          transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.standard,
-          }),
-          mt: '64px',
+          p: 0,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {children}
-      </Box>
-
-      {/* AI Chat Assistant Floating Button */}
-      <ChatAssistant />
-
-      {/* User Menu */}
-      <Menu
-        anchorEl={userMenuAnchor}
-        open={Boolean(userMenuAnchor)}
-        onClose={handleCloseUserMenu}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          elevation: 3,
-          sx: { 
-            minWidth: 200,
-            mt: 1,
-            '& .MuiMenuItem-root': {
-              py: 1.5,
-            }
-          }
-        }}
-      >
-        <MenuItem component={Link} to="/profile" onClick={handleCloseUserMenu}>
-          <ListItemIcon>
-            <ProfileIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Profile</ListItemText>
-        </MenuItem>
-        <MenuItem component={Link} to="/settings" onClick={handleCloseUserMenu}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
-        </MenuItem>
-      </Menu>
-      
-      {/* Notifications Menu */}
-      <Menu
-        anchorEl={notificationsAnchor}
-        open={Boolean(notificationsAnchor)}
-        onClose={handleCloseNotifications}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          elevation: 3,
-          sx: { minWidth: 320 }
-        }}
-      >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle1" fontWeight={500}>
-            Notifications
-          </Typography>
+        <Toolbar /> {/* Spacer for fixed app bar */}
+        <Box sx={{ flexGrow: 1 }}>
+          {children}
         </Box>
-        <Divider />
-        {notifications.length > 0 ? (
-          notifications.map((notification, index) => (
-            <MenuItem 
-              key={index} 
-              onClick={handleCloseNotifications}
-              sx={{
-                py: 1.5,
-                borderLeft: 4,
-                borderLeftColor: 
-                  notification.type === 'success' ? 'success.main' :
-                  notification.type === 'error' ? 'error.main' :
-                  notification.type === 'warning' ? 'warning.main' : 'info.main',
-              }}
-            >
-              <ListItemText
-                primary={notification.message}
-                secondary={(notification as any).timestamp}
-                primaryTypographyProps={{ 
-                  variant: 'body2', 
-                  fontWeight: 500
-                }}
-                secondaryTypographyProps={{ 
-                  variant: 'caption',
-                  sx: { display: 'block', mt: 0.5 } 
-                }}
-              />
-            </MenuItem>
-          ))
-        ) : (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              No new notifications
-            </Typography>
-          </Box>
-        )}
-        <Divider />
-        <MenuItem onClick={handleCloseNotifications} sx={{ justifyContent: 'center' }}>
-          <Typography variant="body2" color="primary">
-            View all notifications
-          </Typography>
-        </MenuItem>
-      </Menu>
+      </Box>
     </Box>
   );
-};
-
-// Helper function for theme alpha colors
-const alpha = (color: string, value: number) => {
-  return color.replace(/rgb\(|rgba\(/, '').replace(')', '').split(',').length === 3
-    ? `rgba(${color.replace(/rgb\(|rgba\(/, '').replace(')', '')}, ${value})`
-    : color;
 };
 
 export default Layout; 
