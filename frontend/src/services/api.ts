@@ -4,7 +4,7 @@ import axios from 'axios';
 const isProduction = import.meta.env.PROD;
 // In production, use the Vercel backend URL; in development use proxy from vite.config.ts
 const API_URL = isProduction 
-  ? 'https://ai-dashmind-hvvwux5yy-tushar-jain07s-projects.vercel.app/api' 
+  ? 'https://ai-dashmind-mm8ng2gm5-tushar-jain07s-projects.vercel.app' 
   : '/api';
 
 // Create axios instance
@@ -13,6 +13,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add timeout to prevent hanging requests
+  timeout: 10000,
 });
 
 // Add request interceptor to include auth token
@@ -25,6 +27,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -33,10 +36,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error.message);
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    
+    // For network errors, provide a more specific error
+    if (error.message === 'Network Error') {
+      return Promise.reject({
+        ...error,
+        message: 'Unable to connect to the server. Please check your internet connection.'
+      });
+    }
+    
     return Promise.reject(error);
   }
 );
