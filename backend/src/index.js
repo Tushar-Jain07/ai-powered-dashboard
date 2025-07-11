@@ -17,7 +17,11 @@ const app = express();
 // Middleware
 // Dynamically determine allowed origins
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['*'] // Allow all origins in production for Vercel deployment
+  ? [
+      '*', // Allow all origins in production for Vercel deployment
+      'https://ai-dashmind-4ztkmvl3m-tushar-jain07s-projects.vercel.app',
+      /\.vercel\.app$/
+    ]
   : [
       'http://localhost:3000',
       'http://localhost:3001',
