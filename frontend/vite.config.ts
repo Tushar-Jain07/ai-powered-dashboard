@@ -14,7 +14,9 @@ export default defineConfig({
     port: 3005,
     proxy: {
       '/api': {
-        target: 'http://localhost:5005',
+        target: process.env.NODE_ENV === 'production' 
+          ? 'https://ai-dashmind-backend.vercel.app'
+          : 'http://localhost:5005',
         changeOrigin: true,
       },
     },
