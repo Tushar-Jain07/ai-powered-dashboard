@@ -59,4 +59,4 @@ The `vercel.json` configuration:
 
 ## License
 
-MIT 
+MIT # Vercel deployment trigger
