@@ -5,7 +5,6 @@ import { CssBaseline, Box } from '@mui/material';
 
 // Import pages directly
 import Dashboard from './pages/Dashboard';
-import DataSources from './pages/DataSources';
 import Reports from './pages/Reports';
 import MLModels from './pages/MLModels';
 import Profile from './pages/Profile';
@@ -71,22 +70,6 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-
-          <Route path="/data-sources" element={
-            <ProtectedRoute>
-              <Layout>
-                <DataSources />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/data-sources/:type" element={
-            <ProtectedRoute>
-              <Layout>
-                <DataSources />
               </Layout>
             </ProtectedRoute>
           } />

@@ -28,7 +28,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  DataArray as DataSourcesIcon,
   BarChart as ReportsIcon,
   PsychologyAlt as MLModelsIcon,
   Settings as SettingsIcon,
@@ -82,28 +81,6 @@ const navigationItems: NavigationItem[] = [
     title: 'Dashboard',
     path: '/',
     icon: <DashboardIcon />,
-  },
-  {
-    title: 'Data Sources',
-    path: '/data-sources',
-    icon: <DataSourcesIcon />,
-    children: [
-      {
-        title: 'Database',
-        path: '/data-sources/database',
-        icon: <DataSourcesIcon />,
-      },
-      {
-        title: 'API',
-        path: '/data-sources/api',
-        icon: <DataSourcesIcon />,
-      },
-      {
-        title: 'File Upload',
-        path: '/data-sources/file',
-        icon: <DataSourcesIcon />,
-      },
-    ],
   },
   {
     title: 'Reports',
