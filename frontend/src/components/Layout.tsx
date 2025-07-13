@@ -145,6 +145,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setDrawerOpen(!drawerOpen);
   };
   
+  // Close drawer on mobile when clicking a link
+  const handleMobileNavigation = () => {
+    if (!isDesktop) {
+      setDrawerOpen(false);
+    }
+  };
+  
   const handleExpandItem = (title: string) => {
     setExpandedItems({
       ...expandedItems,
@@ -198,7 +205,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <ListItemButton
               component={hasChildren ? 'div' : Link}
               to={hasChildren ? undefined : item.path}
-              onClick={hasChildren ? () => handleExpandItem(item.title) : undefined}
+              onClick={hasChildren ? () => handleExpandItem(item.title) : handleMobileNavigation}
               selected={isItemActive}
               sx={{
                 minHeight: 48,

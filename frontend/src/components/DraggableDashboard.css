@@ -82,4 +82,64 @@
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 16px;
+}
+
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+  .react-grid-layout {
+    margin: 0 -8px;
+  }
+  
+  .react-grid-item {
+    margin-bottom: 8px;
+  }
+  
+  .dashboard-controls {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  /* Improve touch targets on mobile */
+  .react-resizable-handle {
+    width: 24px;
+    height: 24px;
+    background-size: 12px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .react-grid-layout {
+    margin: 0 -4px;
+  }
+  
+  .react-grid-item {
+    margin-bottom: 4px;
+  }
+  
+  /* Optimize for small screens */
+  .widget-container {
+    padding: 8px;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-controls {
+    gap: 12px;
+  }
+  
+  .react-grid-item {
+    margin-bottom: 12px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .react-resizable-handle {
+    opacity: 0.8;
+  }
+  
+  .react-grid-item.react-draggable-dragging {
+    transform: scale(1.02);
+  }
 } 
