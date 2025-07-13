@@ -74,6 +74,7 @@ interface DashboardData {
   status: 'active' | 'inactive' | 'pending';
 }
 
+// Dashboard component with enhanced analytics and AI features
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData[]>([]);
   const [filteredData, setFilteredData] = useState<DashboardData[]>([]);
