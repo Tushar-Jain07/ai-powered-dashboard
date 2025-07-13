@@ -1,16 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:frontend",
-  "outputDirectory": "frontend/dist",
   "framework": "vite",
   "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
     {
       "src": "backend/api/index.js",
       "use": "@vercel/node"
@@ -25,4 +16,4 @@
     { "src": "/chat", "dest": "/backend/api/index.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
-} 
+}
