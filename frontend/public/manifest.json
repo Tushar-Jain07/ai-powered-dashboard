@@ -1,6 +1,6 @@
 {
-  "short_name": "AI Dashboard",
-  "name": "AI-Powered Analytics Dashboard",
+  "short_name": "AI-Dashmind",
+  "name": "AI-Dashmind - AI-Powered Analytics Dashboard",
   "icons": [
     {
       "src": "favicon.ico",
@@ -19,7 +19,7 @@
     }
   ],
   "start_url": ".",
-  "display": "browser",
+  "display": "standalone",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
