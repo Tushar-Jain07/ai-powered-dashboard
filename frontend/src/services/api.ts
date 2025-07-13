@@ -2,10 +2,8 @@ import axios from 'axios';
 
 // API URL - determine if we're in development or production
 const isProduction = import.meta.env.PROD;
-// In production, use the Vercel backend URL; in development use proxy from vite.config.ts
-const API_URL = isProduction 
-  ? 'https://ai-dashmind-mm8ng2gm5-tushar-jain07s-projects.vercel.app' 
-  : '/api';
+// Use relative paths for both development and production
+const API_URL = '/api';
 
 // Create axios instance
 const api = axios.create({
