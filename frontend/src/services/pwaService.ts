@@ -193,7 +193,7 @@ class PWAService {
           );
 
           Promise.all(promises).then((sizes) => {
-            totalSize = sizes.flat().reduce((sum, size) => sum + size, 0);
+            totalSize = (sizes as number[][]).flat().reduce((sum, size) => sum + size, 0);
             resolve(totalSize);
           });
         });

@@ -138,7 +138,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' });
+  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' as string | undefined });
 
   // Adjust drawer state based on screen size
   useEffect(() => {

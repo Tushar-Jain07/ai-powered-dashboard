@@ -22,7 +22,7 @@ import PWAInstall from './components/PWAInstall';
 
 // Contexts
 import { useAuth } from './contexts/AuthContext';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from './contexts/NotificationContext';
 
 function App() {
   const { isAuthenticated, loading } = useAuth();

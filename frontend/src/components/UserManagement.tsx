@@ -157,11 +157,14 @@ const UserManagement: React.FC<UserManagementProps> = ({
     } else {
       const newUser: Omit<User, 'id'> = {
         ...formData,
-        id: Date.now().toString(),
         lastLogin: undefined,
         avatar: undefined,
       };
-      setUsers([...users, { ...newUser, id: newUser.id }]);
+      const userWithId = {
+        ...newUser,
+        id: Date.now().toString(),
+      };
+      setUsers([...users, userWithId]);
       onUserAdd?.(newUser);
       addNotification('User added successfully', 'success');
     }

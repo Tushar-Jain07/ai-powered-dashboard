@@ -46,7 +46,7 @@ const PWAInstall: React.FC<PWAInstallProps> = ({
   const [showDialog, setShowDialog] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' });
+  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' as string | undefined });
   const [cacheSize, setCacheSize] = useState(0);
   const [pwaFeatures, setPwaFeatures] = useState({
     serviceWorker: false,
