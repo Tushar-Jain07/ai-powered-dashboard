@@ -2,13 +2,69 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="AI-Dashmind - AI-Powered Analytics Dashboard" />
+    <meta name="theme-color" content="#1976d2" />
+    <meta name="description" content="AI-Dashmind - Advanced AI-powered dashboard with real-time analytics, machine learning insights, and interactive visualizations" />
+    <meta name="keywords" content="dashboard, analytics, AI, machine learning, data visualization, business intelligence" />
+    <meta name="author" content="AI-Dashmind Team" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AI-Dashmind" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#1976d2" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/logo192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/logo192.png" />
+    
+    <!-- Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <title>AI-Dashmind</title>
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    
+    <title>AI-Dashmind - Intelligent Dashboard</title>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('SW registered: ', registration);
+            })
+            .catch(function(registrationError) {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+      
+      // Handle beforeinstallprompt event
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        window.deferredPrompt = e;
+      });
+      
+      // Handle appinstalled event
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('AI-Dashmind was installed');
+        deferredPrompt = null;
+        window.deferredPrompt = null;
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

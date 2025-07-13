@@ -42,11 +42,14 @@ import {
   QuestionMark as HelpIcon,
   Info as InfoIcon,
   KeyboardArrowDown as ArrowDownIcon,
+  WifiOff as OfflineIcon,
+  Wifi as OnlineIcon,
 } from '@mui/icons-material';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 import ChatAssistant from './ChatAssistant';
+import pwaService from '../services/pwaService';
 
 const drawerWidth = 260;
 
@@ -135,11 +138,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' });
 
   // Adjust drawer state based on screen size
   useEffect(() => {
     setDrawerOpen(isDesktop);
   }, [isDesktop]);
+
+  // Update network status
+  useEffect(() => {
+    const updateNetworkStatus = () => {
+      setNetworkStatus(pwaService.getNetworkStatus());
+    };
+
+    updateNetworkStatus();
+    const interval = setInterval(updateNetworkStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
   
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -324,6 +339,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           {/* Right side tools */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Network Status */}
+            <Tooltip title={networkStatus.online ? 'Online' : 'Offline'}>
+              <IconButton color="inherit" size="small">
+                {networkStatus.online ? <OnlineIcon /> : <OfflineIcon />}
+              </IconButton>
+            </Tooltip>
+            
             {/* Theme Toggle */}
             <ThemeToggle />
             
