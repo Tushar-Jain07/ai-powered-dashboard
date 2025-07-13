@@ -10,6 +10,7 @@ import {
   IconButton,
   Tooltip,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -21,11 +22,9 @@ import {
   Api as ApiIcon,
   Storage as StorageIcon,
 } from '@mui/icons-material';
-import DataTable from '../components/DataTable';
-import AdvancedSearch from '../components/AdvancedSearch';
-import ExportButton from '../components/ExportButton';
 import { useNotifications } from '../contexts/NotificationContext';
 
+// Simplified DataSource interface
 interface DataSource {
   id: string;
   name: string;
@@ -35,50 +34,67 @@ interface DataSource {
   records: number;
   size: string;
   description: string;
-  connectionString?: string;
-  endpoint?: string;
-  format?: string;
 }
 
 const DataSources: React.FC = () => {
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
-  const [filteredData, setFilteredData] = useState<DataSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addNotification } = useNotifications();
 
-  // Mock data generation with error handling
+  // Simplified mock data generation
   useEffect(() => {
+    console.log('DataSources component mounted');
+    
     const generateMockData = () => {
       try {
-        console.log('Generating mock data for DataSources...');
+        console.log('Generating mock data...');
         
-        const types: DataSource['type'][] = ['database', 'api', 'file', 'stream'];
-        const statuses: DataSource['status'][] = ['active', 'inactive', 'error'];
-        const formats = ['JSON', 'CSV', 'XML', 'Parquet'];
+        const mockData: DataSource[] = [
+          {
+            id: 'ds-1',
+            name: 'Customer Database',
+            type: 'database',
+            status: 'active',
+            lastSync: new Date().toISOString(),
+            records: 15000,
+            size: '45.2 MB',
+            description: 'Main customer database with user information',
+          },
+          {
+            id: 'ds-2',
+            name: 'Sales API',
+            type: 'api',
+            status: 'active',
+            lastSync: new Date().toISOString(),
+            records: 8500,
+            size: '12.8 MB',
+            description: 'External sales data API integration',
+          },
+          {
+            id: 'ds-3',
+            name: 'Product Catalog',
+            type: 'file',
+            status: 'active',
+            lastSync: new Date().toISOString(),
+            records: 3200,
+            size: '8.5 MB',
+            description: 'Product catalog CSV file',
+          },
+          {
+            id: 'ds-4',
+            name: 'Analytics Stream',
+            type: 'stream',
+            status: 'active',
+            lastSync: new Date().toISOString(),
+            records: 25000,
+            size: '67.3 MB',
+            description: 'Real-time analytics data stream',
+          },
+        ];
         
-        const mockData: DataSource[] = Array.from({ length: 20 }, (_, i) => {
-          const type = types[Math.floor(Math.random() * types.length)];
-          const status = statuses[Math.floor(Math.random() * statuses.length)];
-          
-          return {
-            id: `ds-${i + 1}`,
-            name: `Data Source ${i + 1}`,
-            type,
-            status,
-            lastSync: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-            records: Math.floor(Math.random() * 100000) + 1000,
-            size: `${(Math.random() * 100).toFixed(1)} MB`,
-            description: `Sample data source for ${type} integration`,
-            connectionString: type === 'database' ? `postgresql://user:pass@host:5432/db${i + 1}` : undefined,
-            endpoint: type === 'api' ? `https://api.example.com/v${i + 1}` : undefined,
-            format: type === 'file' ? formats[Math.floor(Math.random() * formats.length)] : undefined,
-          };
-        });
-        
-        console.log('Mock data generated successfully:', mockData.length, 'items');
+        console.log('Mock data generated:', mockData.length, 'items');
         setDataSources(mockData);
-        setFilteredData(mockData);
         setError(null);
       } catch (err) {
         console.error('Error generating mock data:', err);
@@ -88,61 +104,13 @@ const DataSources: React.FC = () => {
       }
     };
 
-    generateMockData();
+    // Simulate loading delay
+    setTimeout(generateMockData, 1000);
   }, []);
-
-  const handleSearch = (query: string, filters: any[]) => {
-    try {
-      let results = [...dataSources];
-      
-      // Apply text search
-      if (query) {
-        results = results.filter(item =>
-          item.name.toLowerCase().includes(query.toLowerCase()) ||
-          item.description.toLowerCase().includes(query.toLowerCase()) ||
-          item.type.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      
-      // Apply filters
-      filters.forEach(filter => {
-        switch (filter.field) {
-          case 'type':
-            if (filter.operator === 'equals') {
-              results = results.filter(item => item.type === filter.value);
-            }
-            break;
-          case 'status':
-            if (filter.operator === 'equals') {
-              results = results.filter(item => item.status === filter.value);
-            }
-            break;
-          case 'records':
-            if (filter.operator === 'between') {
-              const [min, max] = filter.value.toString().split(',').map(Number);
-              results = results.filter(item => item.records >= min && item.records <= max);
-            }
-            break;
-        }
-      });
-      
-      setFilteredData(results);
-      addNotification(`Found ${results.length} data sources`, 'info');
-    } catch (err) {
-      console.error('Error in search:', err);
-      addNotification('Search failed', 'error');
-    }
-  };
-
-  const handleClearSearch = () => {
-    setFilteredData(dataSources);
-    addNotification('Search cleared', 'info');
-  };
 
   const handleRefresh = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       addNotification('Data sources refreshed successfully', 'success');
     } catch (error) {
@@ -150,13 +118,6 @@ const DataSources: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleExport = async (format: string, options: any) => {
-    addNotification(`Exporting data sources in ${format} format...`, 'info');
-    // Simulate export
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    addNotification('Export completed successfully!', 'success');
   };
 
   const getTypeIcon = (type: DataSource['type']) => {
@@ -187,51 +148,6 @@ const DataSources: React.FC = () => {
     }
   };
 
-  const tableColumns = [
-    { id: 'name', label: 'Name', minWidth: 200 },
-    { id: 'type', label: 'Type', minWidth: 120 },
-    { id: 'status', label: 'Status', minWidth: 120 },
-    { id: 'lastSync', label: 'Last Sync', minWidth: 150 },
-    { id: 'records', label: 'Records', minWidth: 120 },
-    { id: 'size', label: 'Size', minWidth: 100 },
-    { id: 'actions', label: 'Actions', minWidth: 150 },
-  ];
-
-  const renderTableData = (data: DataSource[]) => {
-    return data.map((item) => ({
-      ...item,
-      type: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {getTypeIcon(item.type)}
-          {item.type.toUpperCase()}
-        </Box>
-      ),
-      status: (
-        <Chip
-          label={item.status}
-          color={getStatusColor(item.status) as any}
-          size="small"
-        />
-      ),
-      lastSync: new Date(item.lastSync).toLocaleDateString(),
-      records: item.records.toLocaleString(),
-      actions: (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Edit">
-            <IconButton size="small" onClick={() => addNotification(`Edit ${item.name}`, 'info')}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" color="error" onClick={() => addNotification(`Delete ${item.name}`, 'warning')}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    }));
-  };
-
   // Show error if there's one
   if (error) {
     return (
@@ -248,8 +164,16 @@ const DataSources: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '400px',
+        p: 3 
+      }}>
+        <CircularProgress size={60} sx={{ mb: 2 }} />
+        <Typography variant="h6" gutterBottom>
           Loading Data Sources...
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -261,13 +185,13 @@ const DataSources: React.FC = () => {
 
   console.log('DataSources component rendering with:', {
     dataSourcesCount: dataSources.length,
-    filteredDataCount: filteredData.length,
     isLoading,
     error
   });
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Data Sources
@@ -288,63 +212,68 @@ const DataSources: React.FC = () => {
           >
             Refresh
           </Button>
-          <ExportButton
-            data={filteredData}
-            filename="data-sources"
-            onExport={handleExport}
-          />
         </Box>
       </Box>
 
-      {/* Search and Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Search & Filter Data Sources
-          </Typography>
-          <AdvancedSearch
-            onSearch={handleSearch}
-            onClear={handleClearSearch}
-            placeholder="Search by name, type, or description..."
-            searchFields={['name', 'type', 'status', 'description']}
-            categories={['database', 'api', 'file', 'stream']}
-            dateRange={true}
-            numericRange={true}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Results Summary */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="body2" color="text.secondary">
-          Showing {filteredData.length} of {dataSources.length} data sources
-        </Typography>
-        {filteredData.length !== dataSources.length && (
-          <Chip
-            label={`${dataSources.length - filteredData.length} filtered out`}
-            size="small"
-            color="primary"
-            sx={{ ml: 1 }}
-          />
-        )}
-      </Box>
-
-      {/* Data Sources Table */}
+      {/* Data Sources Grid */}
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Data Sources Overview
-              </Typography>
-              <DataTable
-                data={renderTableData(filteredData)}
-                columns={tableColumns}
-                searchable={false}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
+        {dataSources.map((dataSource) => (
+          <Grid item xs={12} sm={6} md={4} key={dataSource.id}>
+            <Card sx={{ height: '100%' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  {getTypeIcon(dataSource.type)}
+                  <Typography variant="h6" sx={{ ml: 1 }}>
+                    {dataSource.name}
+                  </Typography>
+                </Box>
+                
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {dataSource.description}
+                </Typography>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Chip
+                    label={dataSource.type.toUpperCase()}
+                    size="small"
+                    variant="outlined"
+                  />
+                  <Chip
+                    label={dataSource.status}
+                    color={getStatusColor(dataSource.status) as any}
+                    size="small"
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Records: {dataSource.records.toLocaleString()}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Size: {dataSource.size}
+                  </Typography>
+                </Box>
+                
+                <Typography variant="caption" color="text.secondary">
+                  Last sync: {new Date(dataSource.lastSync).toLocaleDateString()}
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                  <Tooltip title="Edit">
+                    <IconButton size="small" onClick={() => addNotification(`Edit ${dataSource.name}`, 'info')}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton size="small" color="error" onClick={() => addNotification(`Delete ${dataSource.name}`, 'warning')}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
 
       {/* Quick Actions */}
