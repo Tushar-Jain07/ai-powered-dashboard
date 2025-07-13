@@ -10,8 +10,17 @@ import {
   Alert,
   Paper,
   Grid,
+  Divider,
+  Chip,
+  useTheme,
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import {
+  LockOutlined as LockIcon,
+  Dashboard as DashboardIcon,
+  Analytics as AnalyticsIcon,
+  Psychology as AIIcon,
+  Security as SecurityIcon,
+} from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -23,6 +32,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
 
   // Get redirect path from location state or default to dashboard
   const from = (location.state as any)?.from?.pathname || '/dashboard';
@@ -56,73 +66,228 @@ const Login: React.FC = () => {
     }
   };
 
+  // Demo credentials for portfolio
+  const handleDemoLogin = () => {
+    setEmail('demo@ai-dashmind.com');
+    setPassword('demo123');
+  };
+
   return (
-    <Container component="main" maxWidth="xs">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Sign in
-          </Typography>
-          
-          {(error || authError) && (
-            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-              {error || authError}
-            </Alert>
-          )}
-          
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
+    <Container component="main" maxWidth="lg">
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 4,
+        }}
+      >
+        <Grid container spacing={4} alignItems="center">
+          {/* Left side - Project Information */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                <Avatar
+                  sx={{
+                    width: 64,
+                    height: 64,
+                    bgcolor: 'primary.main',
+                    mr: 2,
+                  }}
+                >
+                  <DashboardIcon sx={{ fontSize: 32 }} />
+                </Avatar>
+                <Box>
+                  <Typography variant="h3" component="h1" fontWeight="bold" color="primary.main">
+                    AI-Dashmind
+                  </Typography>
+                  <Typography variant="h6" color="text.secondary">
+                    Intelligent Dashboard
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Typography variant="h4" component="h2" gutterBottom fontWeight="600">
+                Advanced AI-Powered Analytics Dashboard
+              </Typography>
+              
+              <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4, fontSize: '1.1rem' }}>
+                Experience the future of data analytics with our intelligent dashboard featuring 
+                real-time insights, machine learning predictions, and interactive visualizations.
+              </Typography>
+
+              {/* Feature highlights */}
+              <Box sx={{ mb: 4 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <AIIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body2" fontWeight="500">
+                        AI-Powered Insights
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <AnalyticsIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body2" fontWeight="500">
+                        Real-time Analytics
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <DashboardIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body2" fontWeight="500">
+                        Interactive Dashboards
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <SecurityIcon color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body2" fontWeight="500">
+                        Secure & Scalable
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Tech stack */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom fontWeight="600">
+                  Built with Modern Technologies
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <Chip label="React" color="primary" variant="outlined" />
+                  <Chip label="TypeScript" color="primary" variant="outlined" />
+                  <Chip label="Node.js" color="primary" variant="outlined" />
+                  <Chip label="Material-UI" color="primary" variant="outlined" />
+                  <Chip label="PWA" color="primary" variant="outlined" />
+                  <Chip label="AI/ML" color="primary" variant="outlined" />
+                </Box>
+              </Box>
+
+              {/* Portfolio note */}
+              <Paper elevation={1} sx={{ p: 2, bgcolor: 'primary.50', border: `1px solid ${theme.palette.primary.light}` }}>
+                <Typography variant="body2" color="primary.dark" fontWeight="500">
+                  🎯 This is a portfolio project showcasing advanced web development skills, 
+                  AI integration, and modern PWA capabilities.
+                </Typography>
+              </Paper>
+            </Box>
+          </Grid>
+
+          {/* Right side - Login Form */}
+          <Grid item xs={12} md={6}>
+            <Paper 
+              elevation={8} 
+              sx={{ 
+                p: 4, 
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                border: `1px solid ${theme.palette.divider}`,
+              }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
-            <Grid container>
-              <Grid item>
-                <Link component={RouterLink} to="/register" variant="body2">
-                  {"Don't have an account? Sign Up"}
-                </Link>
-              </Grid>
-            </Grid>
-          </Box>
-        </Box>
-      </Paper>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+                  <LockIcon sx={{ fontSize: 28 }} />
+                </Avatar>
+                
+                <Typography component="h1" variant="h4" fontWeight="600" gutterBottom>
+                  Welcome Back
+                </Typography>
+                
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+                  Sign in to access your AI-powered dashboard
+                </Typography>
+                
+                {(error || authError) && (
+                  <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+                    {error || authError}
+                  </Alert>
+                )}
+                
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, width: '100%' }}>
+                  <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    id="email"
+                    label="Email Address"
+                    name="email"
+                    autoComplete="email"
+                    autoFocus
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    sx={{ mb: 2 }}
+                  />
+                  <TextField
+                    margin="normal"
+                    required
+                    fullWidth
+                    name="password"
+                    label="Password"
+                    type="password"
+                    id="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    sx={{ mb: 3 }}
+                  />
+                  
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    sx={{ 
+                      mb: 2, 
+                      py: 1.5,
+                      fontSize: '1.1rem',
+                      fontWeight: 600,
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Signing in...' : 'Sign In'}
+                  </Button>
+
+                  {/* Demo login button */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="large"
+                    onClick={handleDemoLogin}
+                    sx={{ 
+                      mb: 3,
+                      py: 1.5,
+                      fontSize: '1rem',
+                    }}
+                  >
+                    Try Demo Account
+                  </Button>
+
+                  <Divider sx={{ my: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      OR
+                    </Typography>
+                  </Divider>
+
+                  <Grid container justifyContent="center">
+                    <Grid item>
+                      <Link component={RouterLink} to="/register" variant="body2" sx={{ fontWeight: 500 }}>
+                        Don't have an account? Sign Up
+                      </Link>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
     </Container>
   );
 };

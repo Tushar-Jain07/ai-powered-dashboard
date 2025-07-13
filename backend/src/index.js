@@ -74,17 +74,32 @@ app.get('/api/test', (req, res) => {
 
 // API routes
 app.post('/api/auth/login', (req, res) => {
-  // Mock authentication endpoint - simplified
+  // Mock authentication endpoint - enhanced for portfolio
   console.log('Login request received');
   console.log('Request body:', req.body);
   
-  // Always return success regardless of credentials
+  const { email, password } = req.body;
+  
+  // Demo account for portfolio visitors
+  if (email === 'demo@ai-dashmind.com' && password === 'demo123') {
+    return res.json({
+      token: 'demo-jwt-token-portfolio',
+      _id: 'demo-user-1',
+      name: 'Demo User',
+      email: 'demo@ai-dashmind.com',
+      role: 'admin',
+      isDemo: true
+    });
+  }
+  
+  // Regular demo login (any credentials work)
   res.json({
     token: 'mock-jwt-token',
     _id: '1',
     name: 'Demo User',
-    email: req.body?.email || 'user@example.com',
-    role: 'admin'
+    email: email || 'user@example.com',
+    role: 'admin',
+    isDemo: false
   });
 });
 
@@ -101,11 +116,25 @@ app.post('/api/auth/register', (req, res) => {
 
 app.get('/api/auth/me', (req, res) => {
   // Mock user profile endpoint
+  const authHeader = req.headers.authorization;
+  
+  // Check if it's the demo token
+  if (authHeader && authHeader.includes('demo-jwt-token-portfolio')) {
+    return res.json({
+      _id: 'demo-user-1',
+      name: 'Demo User',
+      email: 'demo@ai-dashmind.com',
+      role: 'admin',
+      isDemo: true
+    });
+  }
+  
   res.json({
     _id: '1',
     name: 'Demo User',
     email: 'user@example.com',
-    role: 'admin'
+    role: 'admin',
+    isDemo: false
   });
 });
 

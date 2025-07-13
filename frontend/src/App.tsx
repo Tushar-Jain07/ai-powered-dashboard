@@ -22,7 +22,7 @@ import PWAInstall from './components/PWAInstall';
 
 // Contexts
 import { useAuth } from './contexts/AuthContext';
-import { useNotifications } from './contexts/NotificationContext';
+import { useNotifications } from '../contexts/NotificationContext';
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
@@ -55,8 +55,19 @@ function App() {
             } 
           />
           
-          {/* Protected routes */}
+          {/* Default route - redirect to login if not authenticated */}
           <Route path="/" element={
+            isAuthenticated ? (
+              <Layout>
+                <Dashboard />
+              </Layout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } />
+
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
@@ -114,9 +125,13 @@ function App() {
 
           {/* 404 route */}
           <Route path="*" element={
-            <Layout>
-              <NotFound />
-            </Layout>
+            isAuthenticated ? (
+              <Layout>
+                <NotFound />
+              </Layout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
           } />
         </Routes>
 
