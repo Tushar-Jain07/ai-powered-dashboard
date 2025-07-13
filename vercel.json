@@ -1,7 +1,13 @@
 {
   "version": 2,
-  "framework": "vite",
   "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
     {
       "src": "backend/api/index.js",
       "use": "@vercel/node"
@@ -14,6 +20,6 @@
     { "src": "/auth/(.*)", "dest": "/backend/api/index.js" },
     { "src": "/dashboard/(.*)", "dest": "/backend/api/index.js" },
     { "src": "/chat", "dest": "/backend/api/index.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ]
 }
