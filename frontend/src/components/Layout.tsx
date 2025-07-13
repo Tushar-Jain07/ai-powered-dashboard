@@ -76,26 +76,27 @@ interface ExtendedNotification {
   time: string;
 }
 
+// Navigation items for sidebar (Data Sources removed)
 const navigationItems: NavigationItem[] = [
   {
     title: 'Dashboard',
     path: '/',
-    icon: <DashboardIcon />,
+    icon: <DashboardIcon />, // Main dashboard
   },
   {
     title: 'Reports',
     path: '/reports',
-    icon: <ReportsIcon />,
+    icon: <ReportsIcon />, // Reports section
   },
   {
     title: 'ML Models',
     path: '/ml-models',
-    icon: <MLModelsIcon />,
+    icon: <MLModelsIcon />, // Machine learning models
   },
   {
     title: 'Settings',
     path: '/settings',
-    icon: <SettingsIcon />,
+    icon: <SettingsIcon />, // Settings
   },
 ];
 
