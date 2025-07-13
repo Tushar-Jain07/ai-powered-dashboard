@@ -9,6 +9,7 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -43,78 +44,94 @@ const DataSources: React.FC = () => {
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [filteredData, setFilteredData] = useState<DataSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { addNotification } = useNotifications();
 
-  // Mock data generation
+  // Mock data generation with error handling
   useEffect(() => {
     const generateMockData = () => {
-      const types: DataSource['type'][] = ['database', 'api', 'file', 'stream'];
-      const statuses: DataSource['status'][] = ['active', 'inactive', 'error'];
-      const formats = ['JSON', 'CSV', 'XML', 'Parquet'];
-      
-      const mockData: DataSource[] = Array.from({ length: 20 }, (_, i) => {
-        const type = types[Math.floor(Math.random() * types.length)];
-        const status = statuses[Math.floor(Math.random() * statuses.length)];
+      try {
+        console.log('Generating mock data for DataSources...');
         
-        return {
-          id: `ds-${i + 1}`,
-          name: `Data Source ${i + 1}`,
-          type,
-          status,
-          lastSync: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-          records: Math.floor(Math.random() * 100000) + 1000,
-          size: `${(Math.random() * 100).toFixed(1)} MB`,
-          description: `Sample data source for ${type} integration`,
-          connectionString: type === 'database' ? `postgresql://user:pass@host:5432/db${i + 1}` : undefined,
-          endpoint: type === 'api' ? `https://api.example.com/v${i + 1}` : undefined,
-          format: type === 'file' ? formats[Math.floor(Math.random() * formats.length)] : undefined,
-        };
-      });
-      
-      setDataSources(mockData);
-      setFilteredData(mockData);
-      setIsLoading(false);
+        const types: DataSource['type'][] = ['database', 'api', 'file', 'stream'];
+        const statuses: DataSource['status'][] = ['active', 'inactive', 'error'];
+        const formats = ['JSON', 'CSV', 'XML', 'Parquet'];
+        
+        const mockData: DataSource[] = Array.from({ length: 20 }, (_, i) => {
+          const type = types[Math.floor(Math.random() * types.length)];
+          const status = statuses[Math.floor(Math.random() * statuses.length)];
+          
+          return {
+            id: `ds-${i + 1}`,
+            name: `Data Source ${i + 1}`,
+            type,
+            status,
+            lastSync: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            records: Math.floor(Math.random() * 100000) + 1000,
+            size: `${(Math.random() * 100).toFixed(1)} MB`,
+            description: `Sample data source for ${type} integration`,
+            connectionString: type === 'database' ? `postgresql://user:pass@host:5432/db${i + 1}` : undefined,
+            endpoint: type === 'api' ? `https://api.example.com/v${i + 1}` : undefined,
+            format: type === 'file' ? formats[Math.floor(Math.random() * formats.length)] : undefined,
+          };
+        });
+        
+        console.log('Mock data generated successfully:', mockData.length, 'items');
+        setDataSources(mockData);
+        setFilteredData(mockData);
+        setError(null);
+      } catch (err) {
+        console.error('Error generating mock data:', err);
+        setError('Failed to load data sources');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     generateMockData();
   }, []);
 
   const handleSearch = (query: string, filters: any[]) => {
-    let results = [...dataSources];
-    
-    // Apply text search
-    if (query) {
-      results = results.filter(item =>
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.description.toLowerCase().includes(query.toLowerCase()) ||
-        item.type.toLowerCase().includes(query.toLowerCase())
-      );
-    }
-    
-    // Apply filters
-    filters.forEach(filter => {
-      switch (filter.field) {
-        case 'type':
-          if (filter.operator === 'equals') {
-            results = results.filter(item => item.type === filter.value);
-          }
-          break;
-        case 'status':
-          if (filter.operator === 'equals') {
-            results = results.filter(item => item.status === filter.value);
-          }
-          break;
-        case 'records':
-          if (filter.operator === 'between') {
-            const [min, max] = filter.value.toString().split(',').map(Number);
-            results = results.filter(item => item.records >= min && item.records <= max);
-          }
-          break;
+    try {
+      let results = [...dataSources];
+      
+      // Apply text search
+      if (query) {
+        results = results.filter(item =>
+          item.name.toLowerCase().includes(query.toLowerCase()) ||
+          item.description.toLowerCase().includes(query.toLowerCase()) ||
+          item.type.toLowerCase().includes(query.toLowerCase())
+        );
       }
-    });
-    
-    setFilteredData(results);
-    addNotification(`Found ${results.length} data sources`, 'info');
+      
+      // Apply filters
+      filters.forEach(filter => {
+        switch (filter.field) {
+          case 'type':
+            if (filter.operator === 'equals') {
+              results = results.filter(item => item.type === filter.value);
+            }
+            break;
+          case 'status':
+            if (filter.operator === 'equals') {
+              results = results.filter(item => item.status === filter.value);
+            }
+            break;
+          case 'records':
+            if (filter.operator === 'between') {
+              const [min, max] = filter.value.toString().split(',').map(Number);
+              results = results.filter(item => item.records >= min && item.records <= max);
+            }
+            break;
+        }
+      });
+      
+      setFilteredData(results);
+      addNotification(`Found ${results.length} data sources`, 'info');
+    } catch (err) {
+      console.error('Error in search:', err);
+      addNotification('Search failed', 'error');
+    }
   };
 
   const handleClearSearch = () => {
@@ -215,18 +232,42 @@ const DataSources: React.FC = () => {
     }));
   };
 
+  // Show error if there's one
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
   if (isLoading) {
     return (
-      <Box>
+      <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
           Loading Data Sources...
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Please wait while we load your data sources.
         </Typography>
       </Box>
     );
   }
 
+  console.log('DataSources component rendering with:', {
+    dataSourcesCount: dataSources.length,
+    filteredDataCount: filteredData.length,
+    isLoading,
+    error
+  });
+
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Data Sources
