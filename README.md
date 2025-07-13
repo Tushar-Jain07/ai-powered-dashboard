@@ -60,3 +60,4 @@ The `vercel.json` configuration:
 ## License
 
 MIT # Vercel deployment trigger
+# API fix applied
