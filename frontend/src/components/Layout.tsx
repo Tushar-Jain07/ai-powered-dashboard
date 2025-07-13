@@ -116,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
-  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' as string | undefined });
+  const [networkStatus, setNetworkStatus] = useState({ online: true, effectiveType: 'unknown' });
 
   // Adjust drawer state based on screen size
   useEffect(() => {
@@ -200,14 +200,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               to={hasChildren ? undefined : item.path}
               onClick={hasChildren ? () => handleExpandItem(item.title) : handleMobileNavigation}
               selected={isItemActive}
+              aria-current={isItemActive ? 'page' : undefined}
+              aria-label={item.title}
+              role="menuitem"
               sx={{
                 minHeight: 48,
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 pl: level * 2 + 2,
                 borderRadius: '8px',
                 mx: 1,
+                transition: 'background 0.2s, color 0.2s',
                 '&.Mui-selected': {
                   backgroundColor: theme => theme.palette.primary.main + '20',
+                  color: theme => theme.palette.primary.main,
                   '&::before': {
                     content: '""',
                     position: 'absolute',
@@ -215,9 +220,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     top: '25%',
                     height: '50%',
                     width: 4,
-                    backgroundColor: theme.palette.primary.main,
+                    backgroundColor: theme => theme.palette.primary.main,
                     borderRadius: '0 2px 2px 0',
                   },
+                },
+                '&:hover, &:focus': {
+                  backgroundColor: theme => theme.palette.action.hover,
+                  color: theme => theme.palette.primary.dark,
+                },
+                '@media (max-width:600px)': {
+                  minHeight: 56,
+                  fontSize: '1.1rem',
+                  px: 2,
                 },
               }}
             >
@@ -272,6 +286,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* App Bar */}
       <AppBar
         position="fixed"
+        role="banner"
         sx={{
           width: { md: drawerOpen ? `calc(100% - ${drawerWidth}px)` : '100%' },
           ml: { md: drawerOpen ? `${drawerWidth}px` : 0 },
@@ -331,6 +346,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Tooltip title="Notifications">
               <IconButton 
                 color="inherit" 
+                aria-label="Open notifications"
                 onClick={handleOpenNotifications}
                 size="large"
               >
@@ -350,6 +366,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               PaperProps={{
                 sx: { width: 320, maxHeight: 400 }
               }}
+              aria-label="Notifications menu"
+              role="menu"
             >
               <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
                 <Typography variant="h6">Notifications</Typography>
@@ -447,6 +465,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         variant={isDesktop ? "permanent" : "temporary"}
         open={drawerOpen}
         onClose={isDesktop ? undefined : handleDrawerToggle}
+        role="navigation"
+        aria-label="Sidebar navigation"
         sx={{
           width: drawerWidth,
           flexShrink: 0,
@@ -462,16 +482,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           justifyContent: 'space-between',
           px: [1],
         }}>
-          <Typography variant="h6" noWrap component="div" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box
               component="img"
               src="/logo192.png"
-              alt="Logo"
-              sx={{ height: 32, width: 32, mr: 1 }}
+              alt="AI-Dashmind Logo"
+              sx={{ height: 36, width: 36, mr: 1 }}
+              aria-label="AI-Dashmind Logo"
             />
-            Dashboard
-          </Typography>
-          <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }}>
+            <Typography variant="h6" noWrap component="div" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+              AI-Dashmind
+            </Typography>
+          </Box>
+          <IconButton onClick={handleDrawerToggle} sx={{ display: { md: 'none' } }} aria-label="Close sidebar">
             <ChevronLeftIcon />
           </IconButton>
         </Toolbar>
@@ -490,6 +513,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <Box
         component="main"
+        id="main-content"
+        role="main"
         sx={{
           flexGrow: 1,
           p: 0,
@@ -497,7 +522,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          outline: 'none',
+          '&:focus': {
+            outline: '2px solid #1976d2',
+            outlineOffset: '2px',
+          },
         }}
+        tabIndex={-1}
       >
         <Toolbar /> {/* Spacer for fixed app bar */}
         <Box sx={{ flexGrow: 1 }}>

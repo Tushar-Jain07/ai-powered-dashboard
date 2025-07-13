@@ -93,7 +93,7 @@ class PWAService {
   private async syncData() {
     if (this.registration && 'sync' in this.registration) {
       try {
-        await this.registration.sync.register('background-sync');
+        await (this.registration.sync as any).register('background-sync');
         console.log('PWA Service: Background sync registered');
       } catch (error) {
         console.error('PWA Service: Background sync failed', error);
@@ -213,11 +213,11 @@ class PWAService {
     }
   }
 
-  getNetworkStatus(): { online: boolean; effectiveType?: string } {
+  getNetworkStatus(): { online: boolean; effectiveType: string } {
     const connection = (navigator as any).connection;
     return {
       online: this.isOnline,
-      effectiveType: connection?.effectiveType
+      effectiveType: connection?.effectiveType || 'unknown',
     };
   }
 
@@ -225,7 +225,7 @@ class PWAService {
   async syncDashboardData() {
     if (this.registration && 'sync' in this.registration) {
       try {
-        await this.registration.sync.register('dashboard-sync');
+        await (this.registration.sync as any).register('dashboard-sync');
         console.log('PWA Service: Dashboard sync registered');
       } catch (error) {
         console.error('PWA Service: Dashboard sync failed', error);

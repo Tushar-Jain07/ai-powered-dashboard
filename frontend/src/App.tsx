@@ -35,6 +35,23 @@ function App() {
   return (
     <BrowserRouter>
       <CssBaseline />
+      {/* Skip to content link for accessibility */}
+      <a href="#main-content" className="skip-to-content" style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        background: '#1976d2',
+        color: '#fff',
+        padding: '8px 16px',
+        zIndex: 2000,
+        transform: 'translateY(-100%)',
+        transition: 'transform 0.2s',
+      }}
+      onFocus={e => (e.currentTarget.style.transform = 'translateY(0)')}
+      onBlur={e => (e.currentTarget.style.transform = 'translateY(-100%)')}
+      >
+        Skip to main content
+      </a>
       <Box sx={{ 
         minHeight: '100vh',
         backgroundColor: theme => theme.palette.background.default,
