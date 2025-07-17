@@ -227,8 +227,8 @@ const DataEntry: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      import('../components/ExcelExportButton').then(mod => setExcelExportButton(() => mod.default));
-      import('../components/ExcelImportButton').then(mod => setExcelImportButton(() => mod.default));
+      import('../../dynamic/ExcelExportButton').then(mod => setExcelExportButton(() => mod.default));
+      import('../../dynamic/ExcelImportButton').then(mod => setExcelImportButton(() => mod.default));
     }
   }, []);
 
