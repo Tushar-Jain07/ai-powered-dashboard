@@ -16,6 +16,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import jsPDF from 'jspdf';
+import { TextField, MenuItem, Button, Box, Grid, Paper, Typography } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { format, isAfter, isBefore } from 'date-fns';
 
 interface Entry {
   _id?: string;
@@ -43,6 +48,39 @@ const DataEntry: React.FC = () => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter state
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | null>(null);
+  const [filterDateTo, setFilterDateTo] = useState<Date | null>(null);
+  const [filterSalesMin, setFilterSalesMin] = useState('');
+  const [filterSalesMax, setFilterSalesMax] = useState('');
+  const [filterProfitMin, setFilterProfitMin] = useState('');
+  const [filterProfitMax, setFilterProfitMax] = useState('');
+
+  // Filtering logic
+  const filteredData = data.filter((row) => {
+    // Free text search
+    const matchesSearch = search
+      ? Object.values(row).some((v) => String(v).toLowerCase().includes(search.toLowerCase()))
+      : true;
+    // Category
+    const matchesCategory = filterCategory ? row.category === filterCategory : true;
+    // Date range
+    const matchesDateFrom = filterDateFrom ? isAfter(new Date(row.date), filterDateFrom) || format(new Date(row.date), 'yyyy-MM-dd') === format(filterDateFrom, 'yyyy-MM-dd') : true;
+    const matchesDateTo = filterDateTo ? isBefore(new Date(row.date), filterDateTo) || format(new Date(row.date), 'yyyy-MM-dd') === format(filterDateTo, 'yyyy-MM-dd') : true;
+    // Sales
+    const matchesSalesMin = filterSalesMin ? row.sales >= Number(filterSalesMin) : true;
+    const matchesSalesMax = filterSalesMax ? row.sales <= Number(filterSalesMax) : true;
+    // Profit
+    const matchesProfitMin = filterProfitMin ? row.profit >= Number(filterProfitMin) : true;
+    const matchesProfitMax = filterProfitMax ? row.profit <= Number(filterProfitMax) : true;
+    return (
+      matchesSearch && matchesCategory && matchesDateFrom && matchesDateTo &&
+      matchesSalesMin && matchesSalesMax && matchesProfitMin && matchesProfitMax
+    );
+  });
 
   // Fetch data from backend on mount
   useEffect(() => {
@@ -153,7 +191,7 @@ const DataEntry: React.FC = () => {
   ];
 
   // Fix DataGrid row id and types
-  const rows = data.map((d) => ({ ...d, id: (d as any)._id || (d as any).id }));
+  const rows = filteredData.map((d) => ({ ...d, id: (d as any)._id || (d as any).id }));
 
   // Edit entry
   const handleEdit = (id: number) => {
@@ -205,13 +243,13 @@ const DataEntry: React.FC = () => {
   };
 
   // Analytics
-  const totalSales = data.reduce((sum, d) => sum + d.sales, 0);
-  const totalProfit = data.reduce((sum, d) => sum + d.profit, 0);
-  const salesByDate = data.reduce((acc, d) => {
+  const totalSales = filteredData.reduce((sum, d) => sum + d.sales, 0);
+  const totalProfit = filteredData.reduce((sum, d) => sum + d.profit, 0);
+  const salesByDate = filteredData.reduce((acc, d) => {
     acc[d.date] = (acc[d.date] || 0) + d.sales;
     return acc;
   }, {} as Record<string, number>);
-  const profitByCategory = data.reduce((acc, d) => {
+  const profitByCategory = filteredData.reduce((acc, d) => {
     acc[d.category] = (acc[d.category] || 0) + d.profit;
     return acc;
   }, {} as Record<string, number>);
@@ -307,6 +345,33 @@ const DataEntry: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  // --- AI Insights logic ---
+  let insights: string[] = [];
+  // Trend analysis (sales over time)
+  const salesDates = Object.entries(salesByDate).sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime());
+  if (salesDates.length > 1) {
+    const first = salesDates[0][1];
+    const last = salesDates[salesDates.length - 1][1];
+    if (last > first) insights.push(`Sales are trending up (${first} → ${last}) over the selected period.`);
+    else if (last < first) insights.push(`Sales are trending down (${first} → ${last}) over the selected period.`);
+    else insights.push(`Sales are stable over the selected period.`);
+  }
+  // Best/worst category
+  const sortedCategories = Object.entries(profitByCategory).sort((a, b) => b[1] - a[1]);
+  if (sortedCategories.length > 0) {
+    insights.push(`Most profitable category: ${sortedCategories[0][0]} (${sortedCategories[0][1]})`);
+    if (sortedCategories.length > 1) insights.push(`Least profitable category: ${sortedCategories[sortedCategories.length-1][0]} (${sortedCategories[sortedCategories.length-1][1]})`);
+  }
+  // Spike/drop detection (simple)
+  if (salesDates.length > 2) {
+    let maxDelta = 0, spikeDate = '';
+    for (let i = 1; i < salesDates.length; ++i) {
+      const delta = Math.abs(salesDates[i][1] - salesDates[i-1][1]);
+      if (delta > maxDelta) { maxDelta = delta; spikeDate = salesDates[i][0]; }
+    }
+    if (maxDelta > 0) insights.push(`Largest sales change (${maxDelta}) occurred on ${spikeDate}.`);
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>Data Entry</Typography>
@@ -399,6 +464,94 @@ const DataEntry: React.FC = () => {
         </form>
       </Paper>
 
+      {/* Filter/Search UI */}
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={3}>
+              <TextField
+                label="Search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <TextField
+                label="Category"
+                select
+                value={filterCategory}
+                onChange={e => setFilterCategory(e.target.value)}
+                fullWidth
+              >
+                <MenuItem value="">All</MenuItem>
+                {categories.map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <DatePicker
+                label="From"
+                value={filterDateFrom}
+                onChange={setFilterDateFrom}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+            </Grid>
+            <Grid item xs={12} sm={2}>
+              <DatePicker
+                label="To"
+                value={filterDateTo}
+                onChange={setFilterDateTo}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <TextField
+                label="Sales Min"
+                type="number"
+                value={filterSalesMin}
+                onChange={e => setFilterSalesMin(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <TextField
+                label="Sales Max"
+                type="number"
+                value={filterSalesMax}
+                onChange={e => setFilterSalesMax(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <TextField
+                label="Profit Min"
+                type="number"
+                value={filterProfitMin}
+                onChange={e => setFilterProfitMin(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <TextField
+                label="Profit Max"
+                type="number"
+                value={filterProfitMax}
+                onChange={e => setFilterProfitMax(e.target.value)}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12} sm={1}>
+              <Button variant="outlined" onClick={() => {
+                setSearch(''); setFilterCategory(''); setFilterDateFrom(null); setFilterDateTo(null);
+                setFilterSalesMin(''); setFilterSalesMax(''); setFilterProfitMin(''); setFilterProfitMax('');
+              }}>Clear</Button>
+            </Grid>
+          </Grid>
+        </LocalizationProvider>
+      </Paper>
+
       {data.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
           <Button variant="outlined" onClick={handleExportExcel}>Export Excel</Button>
@@ -441,6 +594,16 @@ const DataEntry: React.FC = () => {
             </Box>
           </Box>
         </Box>
+      )}
+
+      {/* AI Insights Panel */}
+      {insights.length > 0 && (
+        <Paper sx={{ p: 2, mb: 2, background: '#f5f5fa' }}>
+          <Typography variant="h6" gutterBottom>AI Insights</Typography>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {insights.map((msg, i) => <li key={i}>{msg}</li>)}
+          </ul>
+        </Paper>
       )}
     </Box>
   );
