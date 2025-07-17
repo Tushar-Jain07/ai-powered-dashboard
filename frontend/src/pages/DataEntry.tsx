@@ -16,7 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-import ClientOnly from '../components/ClientOnly';
+// Remove all static/lazy imports for ExcelExportButton and ExcelImportButton
+import { useState, useEffect } from 'react';
 
 interface Entry {
   _id?: string;
@@ -220,9 +221,16 @@ const DataEntry: React.FC = () => {
   // Fix PieChart data mapping
   const pieChartData = Object.entries(profitByCategory).map(([category, profit]) => ({ name: category, value: profit }));
 
-  // Dynamically import ExcelExportButton
-  const ExcelExportButton = React.lazy(() => import('../components/ExcelExportButton'));
-  const ExcelImportButton = React.lazy(() => import('../components/ExcelImportButton'));
+  // Dynamically load ExcelExportButton and ExcelImportButton only on client
+  const [ExcelExportButton, setExcelExportButton] = useState<null | React.ComponentType<any>>(null);
+  const [ExcelImportButton, setExcelImportButton] = useState<null | React.ComponentType<any>>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('../components/ExcelExportButton').then(mod => setExcelExportButton(() => mod.default));
+      import('../components/ExcelImportButton').then(mod => setExcelImportButton(() => mod.default));
+    }
+  }, []);
 
   const handleExportTSV = () => {
     if (!data.length) return;
@@ -360,11 +368,11 @@ const DataEntry: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={handleCSVUpload}
               />
-              <ClientOnly>
-                <Suspense fallback={<span>Loading...</span>}>
-                  <ExcelImportButton onImport={handleExcelImport} />
-                </Suspense>
-              </ClientOnly>
+              {ExcelImportButton ? (
+                <ExcelImportButton onImport={handleExcelImport} />
+              ) : (
+                <button type="button" disabled>Loading Excel Import...</button>
+              )}
             </Grid>
           </Grid>
         </form>
@@ -372,11 +380,11 @@ const DataEntry: React.FC = () => {
 
       {data.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          <ClientOnly>
-            <Suspense fallback={<span>Loading...</span>}>
-              <ExcelExportButton data={data} filename="data-entries.xlsx" />
-            </Suspense>
-          </ClientOnly>
+          {ExcelExportButton ? (
+            <ExcelExportButton data={data} filename="data-entries.xlsx" />
+          ) : (
+            <button type="button" disabled>Loading Excel Export...</button>
+          )}
           <Button variant="outlined" onClick={handleExportCSV}>Export CSV</Button>
           <Button variant="outlined" onClick={handleExportPDF}>Export PDF</Button>
           <Button variant="outlined" onClick={handleExportTSV}>Export TSV</Button>
