@@ -169,14 +169,6 @@ const Login: React.FC = () => {
                   <Chip label="AI/ML" color="primary" variant="outlined" />
                 </Box>
               </Box>
-
-              {/* Portfolio note */}
-              <Paper elevation={1} sx={{ p: 2, bgcolor: 'primary.50', border: `1px solid ${theme.palette.primary.light}` }}>
-                <Typography variant="body2" color="primary.dark" fontWeight="500">
-                  🎯 This is a portfolio project showcasing advanced web development skills, 
-                  AI integration, and modern PWA capabilities.
-                </Typography>
-              </Paper>
             </Box>
           </Grid>
 
