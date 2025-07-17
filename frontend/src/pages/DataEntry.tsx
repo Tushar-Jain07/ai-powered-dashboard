@@ -230,6 +230,16 @@ const DataEntry: React.FC = () => {
     }
   }, []);
 
+  // Inject excel-utils.js script on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.exportToExcel) {
+      const script = document.createElement('script');
+      script.src = '/excel-utils.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   const handleExportTSV = () => {
     if (!data.length) return;
     const header = Object.keys(data[0]).filter(k => k !== '_id' && k !== 'id');
@@ -276,6 +286,46 @@ const DataEntry: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Excel export handler (calls window.exportToExcel)
+  const handleExportExcel = () => {
+    if (typeof window !== 'undefined' && window.exportToExcel) {
+      window.exportToExcel(data, 'data-entries.xlsx');
+    }
+  };
+
+  // Excel import handler (calls window.importFromExcel)
+  const excelFileInputRef = useRef(null);
+  const handleExcelImportClick = () => {
+    excelFileInputRef.current?.click();
+  };
+  const handleExcelImport = (e) => {
+    const file = e.target.files?.[0];
+    if (!file || typeof window === 'undefined' || !window.importFromExcel) return;
+    window.importFromExcel(file, async (entries) => {
+      const newEntries = entries.map((entry) => ({
+        date: entry.date || '',
+        sales: Number(entry.sales) || 0,
+        profit: Number(entry.profit) || 0,
+        category: entry.category || '',
+      }));
+      setLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await Promise.all(newEntries.map(entry =>
+          axios.post(API_URL, entry, { headers: { Authorization: `Bearer ${token}` } })
+        ));
+        setData(prev => [...prev, ...res.map(r => r.data)]);
+        setShowAnalytics(true);
+      } catch (err) {
+        setError('Failed to upload Excel entries');
+      } finally {
+        setLoading(false);
+      }
+    });
+    e.target.value = '';
   };
 
   // CSV export handler
@@ -366,11 +416,20 @@ const DataEntry: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={handleCSVUpload}
               />
-              {ExcelImportButton ? (
-                <ExcelImportButton onImport={handleExcelImport} />
-              ) : (
-                <button type="button" disabled>Loading Excel Import...</button>
-              )}
+              <Button
+                variant="outlined"
+                sx={{ ml: 2 }}
+                onClick={handleExcelImportClick}
+              >
+                Import Excel
+              </Button>
+              <input
+                type="file"
+                accept=".xlsx"
+                ref={excelFileInputRef}
+                style={{ display: 'none' }}
+                onChange={handleExcelImport}
+              />
             </Grid>
           </Grid>
         </form>
@@ -378,11 +437,7 @@ const DataEntry: React.FC = () => {
 
       {data.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          {ExcelExportButton ? (
-            <ExcelExportButton data={data} filename="data-entries.xlsx" />
-          ) : (
-            <button type="button" disabled>Loading Excel Export...</button>
-          )}
+          <Button variant="outlined" onClick={handleExportExcel}>Export Excel</Button>
           <Button variant="outlined" onClick={handleExportCSV}>Export CSV</Button>
           <Button variant="outlined" onClick={handleExportPDF}>Export PDF</Button>
           <Button variant="outlined" onClick={handleExportTSV}>Export TSV</Button>
