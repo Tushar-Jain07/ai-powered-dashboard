@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 // Initialize OpenAI only if API key is available
 let openai = null;
@@ -10,6 +12,12 @@ if (process.env.OPENAI_API_KEY) {
     apiKey: process.env.OPENAI_API_KEY,
   });
 }
+
+// Connect to MongoDB
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai_dashboard';
+mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Create Express app
 const app = express();
@@ -194,6 +202,63 @@ app.post('/api/chat', async (req, res) => {
     console.error('OpenAI API error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to generate response from OpenAI' });
   }
+});
+
+// DataEntry Mongoose model
+const dataEntrySchema = new mongoose.Schema({
+  date: { type: String, required: true },
+  sales: { type: Number, required: true },
+  profit: { type: Number, required: true },
+  category: { type: String, required: true },
+  userId: { type: String, required: true },
+}, { timestamps: true });
+const DataEntry = mongoose.model('DataEntry', dataEntrySchema);
+
+// JWT auth middleware
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
+  jwt.verify(token, process.env.JWT_SECRET || 'dev_secret', (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+}
+
+// CRUD endpoints for user data
+app.get('/api/user-data', authenticateToken, async (req, res) => {
+  const entries = await DataEntry.find({ userId: req.user.id });
+  res.json(entries);
+});
+
+app.post('/api/user-data', authenticateToken, async (req, res) => {
+  const { date, sales, profit, category } = req.body;
+  if (!date || sales == null || profit == null || !category) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  const entry = new DataEntry({ date, sales, profit, category, userId: req.user.id });
+  await entry.save();
+  res.status(201).json(entry);
+});
+
+app.put('/api/user-data/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { date, sales, profit, category } = req.body;
+  const entry = await DataEntry.findOneAndUpdate(
+    { _id: id, userId: req.user.id },
+    { date, sales, profit, category },
+    { new: true }
+  );
+  if (!entry) return res.status(404).json({ error: 'Entry not found' });
+  res.json(entry);
+});
+
+app.delete('/api/user-data/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const result = await DataEntry.deleteOne({ _id: id, userId: req.user.id });
+  if (result.deletedCount === 0) return res.status(404).json({ error: 'Entry not found' });
+  res.json({ success: true });
 });
 
 // Catch-all route for API
