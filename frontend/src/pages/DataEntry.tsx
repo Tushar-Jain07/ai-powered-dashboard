@@ -16,7 +16,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-import { TextField, MenuItem, Button, Box, Grid, Paper, Typography } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -495,7 +494,7 @@ const DataEntry: React.FC = () => {
                 label="From"
                 value={filterDateFrom}
                 onChange={setFilterDateFrom}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                renderInput={(params: any) => <TextField {...params} fullWidth />}
               />
             </Grid>
             <Grid item xs={12} sm={2}>
@@ -503,7 +502,7 @@ const DataEntry: React.FC = () => {
                 label="To"
                 value={filterDateTo}
                 onChange={setFilterDateTo}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                renderInput={(params: any) => <TextField {...params} fullWidth />}
               />
             </Grid>
             <Grid item xs={12} sm={1}>

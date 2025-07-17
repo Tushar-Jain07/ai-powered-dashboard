@@ -23,12 +23,15 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/date-fns": "^2.5.3",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3"
   },
   "dependencies": {
     "@mui/x-data-grid": "^8.8.0",
+    "@mui/x-date-pickers": "^8.8.0",
     "@types/react": "^19.1.8",
+    "date-fns": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.1",
     "mongoose": "^7.6.3",
