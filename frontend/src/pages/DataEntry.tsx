@@ -27,6 +27,7 @@ interface Entry {
   sales: number;
   profit: number;
   category: string;
+  [key: string]: any;
 }
 
 const categories = ['Electronics', 'Apparel', 'Home', 'Toys', 'Other'];
