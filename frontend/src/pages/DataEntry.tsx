@@ -7,6 +7,7 @@ import {
   Paper,
   Grid,
   MenuItem,
+  IconButton,
 } from '@mui/material';
 import BarChart from '../components/charts/BarChart';
 import PieChart from '../components/charts/PieChart';
@@ -137,13 +138,16 @@ const DataEntry: React.FC = () => {
     { field: 'category', headerName: 'Category', width: 120 },
     {
       field: 'actions',
-      type: 'actions',
       headerName: 'Actions',
       width: 100,
-      getActions: (params: any) => [
-        <GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={() => handleEdit(params.row.id)} />,
-        <GridActionsCellItem icon={<DeleteIcon />} label="Delete" onClick={() => handleDelete(params.row.id)} />,
-      ],
+      sortable: false,
+      filterable: false,
+      renderCell: (params: any) => (
+        <>
+          <IconButton size="small" onClick={() => handleEdit(params.row.id)}><EditIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => handleDelete(params.row.id)}><DeleteIcon fontSize="small" /></IconButton>
+        </>
+      ),
     },
   ];
 
@@ -319,8 +323,6 @@ const DataEntry: React.FC = () => {
             <Box sx={{ flex: 1, minWidth: 300 }}>
               <PieChart
                 data={pieChartData}
-                valueKey="value"
-                labelKey="name"
                 title="Profit by Category"
                 height={300}
               />
