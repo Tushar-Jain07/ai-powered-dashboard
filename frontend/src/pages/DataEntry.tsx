@@ -219,17 +219,6 @@ const DataEntry: React.FC = () => {
   // Fix PieChart data mapping
   const pieChartData = Object.entries(profitByCategory).map(([category, profit]) => ({ name: category, value: profit }));
 
-  // Dynamically load ExcelExportButton and ExcelImportButton only on client
-  const [ExcelExportButton, setExcelExportButton] = useState<null | React.ComponentType<any>>(null);
-  const [ExcelImportButton, setExcelImportButton] = useState<null | React.ComponentType<any>>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('../../dynamic/ExcelExportButton').then(mod => setExcelExportButton(() => mod.default));
-      import('../../dynamic/ExcelImportButton').then(mod => setExcelImportButton(() => mod.default));
-    }
-  }, []);
-
   // Inject excel-utils.js script on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.exportToExcel) {
