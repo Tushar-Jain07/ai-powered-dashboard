@@ -30,6 +30,8 @@
     "@mui/x-data-grid": "^8.8.0",
     "@types/react": "^19.1.8",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.6.3"
+    "jspdf": "^3.0.1",
+    "mongoose": "^7.6.3",
+    "xlsx": "^0.18.5"
   }
 }

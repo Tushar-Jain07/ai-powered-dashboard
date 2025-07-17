@@ -16,6 +16,9 @@ import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface Entry {
   _id?: string;
@@ -218,6 +221,36 @@ const DataEntry: React.FC = () => {
   // Fix PieChart data mapping
   const pieChartData = Object.entries(profitByCategory).map(([category, profit]) => ({ name: category, value: profit }));
 
+  // Export handlers
+  const handleExportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Data');
+    XLSX.writeFile(wb, 'data-entries.xlsx');
+  };
+
+  const handleExportTSV = () => {
+    if (!data.length) return;
+    const header = Object.keys(data[0]).filter(k => k !== '_id' && k !== 'id');
+    const rows = data.map(row => header.map(h => row[h]).join('\t'));
+    const tsv = [header.join('\t'), ...rows].join('\n');
+    const blob = new Blob([tsv], { type: 'text/tab-separated-values' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data-entries.tsv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const header = Object.keys(data[0]).filter(k => k !== '_id' && k !== 'id');
+    const rows = data.map(row => header.map(h => row[h]));
+    (doc as any).autoTable({ head: [header], body: rows });
+    doc.save('data-entries.pdf');
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>Data Entry</Typography>
@@ -295,6 +328,14 @@ const DataEntry: React.FC = () => {
           </Grid>
         </form>
       </Paper>
+
+      {data.length > 0 && (
+        <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
+          <Button variant="outlined" onClick={handleExportExcel}>Export Excel</Button>
+          <Button variant="outlined" onClick={handleExportPDF}>Export PDF</Button>
+          <Button variant="outlined" onClick={handleExportTSV}>Export TSV</Button>
+        </Box>
+      )}
 
       {data.length > 0 && (
         <Box sx={{ mb: 4 }}>
