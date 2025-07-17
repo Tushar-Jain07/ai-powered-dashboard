@@ -16,8 +16,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-// Remove all static/lazy imports for ExcelExportButton and ExcelImportButton
-import { useState, useEffect } from 'react';
 
 interface Entry {
   _id?: string;
