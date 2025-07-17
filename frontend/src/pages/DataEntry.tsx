@@ -343,14 +343,6 @@ const DataEntry: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  // TypeScript: declare window Excel utils
-  declare global {
-    interface Window {
-      exportToExcel?: (data: any[], filename?: string) => void;
-      importFromExcel?: (file: File, cb: (entries: any[]) => void) => void;
-    }
-  }
-
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>Data Entry</Typography>
