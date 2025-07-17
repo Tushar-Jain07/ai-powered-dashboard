@@ -16,6 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 import jsPDF from 'jspdf';
+import ClientOnly from '../components/ClientOnly';
 
 interface Entry {
   _id?: string;
@@ -359,9 +360,11 @@ const DataEntry: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={handleCSVUpload}
               />
-              <Suspense fallback={<span>Loading...</span>}>
-                <ExcelImportButton onImport={handleExcelImport} />
-              </Suspense>
+              <ClientOnly>
+                <Suspense fallback={<span>Loading...</span>}>
+                  <ExcelImportButton onImport={handleExcelImport} />
+                </Suspense>
+              </ClientOnly>
             </Grid>
           </Grid>
         </form>
@@ -369,9 +372,11 @@ const DataEntry: React.FC = () => {
 
       {data.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          <Suspense fallback={<span>Loading...</span>}>
-            <ExcelExportButton data={data} filename="data-entries.xlsx" />
-          </Suspense>
+          <ClientOnly>
+            <Suspense fallback={<span>Loading...</span>}>
+              <ExcelExportButton data={data} filename="data-entries.xlsx" />
+            </Suspense>
+          </ClientOnly>
           <Button variant="outlined" onClick={handleExportCSV}>Export CSV</Button>
           <Button variant="outlined" onClick={handleExportPDF}>Export PDF</Button>
           <Button variant="outlined" onClick={handleExportTSV}>Export TSV</Button>
