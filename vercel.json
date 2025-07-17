@@ -14,6 +14,10 @@
     }
   ],
   "routes": [
+    { "src": "/api/auth/login", "dest": "/backend/api/auth/login.js" },
+    { "src": "/api/auth/register", "dest": "/backend/api/auth/register.js" },
+    { "src": "/api/auth/me", "dest": "/backend/api/auth/me.js" },
+    { "src": "/api/user-data", "dest": "/backend/api/user-data.js" },
     { "src": "/api/(.*)", "dest": "/backend/api/index.js" },
     { "src": "/health", "dest": "/backend/api/index.js" },
     { "src": "/test", "dest": "/backend/api/index.js" },
