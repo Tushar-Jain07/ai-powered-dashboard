@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
+import DataEntry from './pages/DataEntry';
 
 // Components
 import Layout from './components/Layout';
@@ -86,6 +87,14 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/data-entry" element={
+            <ProtectedRoute>
+              <Layout>
+                <DataEntry />
               </Layout>
             </ProtectedRoute>
           } />

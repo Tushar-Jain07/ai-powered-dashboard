@@ -10,7 +10,7 @@
     "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "cd frontend && npm install && npm run build",
-    "build:backend": "cd backend && npm install", 
+    "build:backend": "cd backend && npm install",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
   },
   "keywords": [
@@ -25,5 +25,11 @@
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3"
+  },
+  "dependencies": {
+    "@mui/x-data-grid": "^8.8.0",
+    "@types/react": "^19.1.8",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.6.3"
   }
 }

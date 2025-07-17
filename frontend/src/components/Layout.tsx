@@ -43,6 +43,7 @@ import {
   KeyboardArrowDown as ArrowDownIcon,
   WifiOff as OfflineIcon,
   Wifi as OnlineIcon,
+  BarChart as BarChartIcon,
 } from '@mui/icons-material';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,8 +80,13 @@ interface ExtendedNotification {
 const navigationItems: NavigationItem[] = [
   {
     title: 'Dashboard',
-    path: '/',
+    path: '/dashboard',
     icon: <DashboardIcon />, // Main dashboard
+  },
+  {
+    title: 'Data Entry',
+    path: '/data-entry',
+    icon: <BarChartIcon />, // Data Entry
   },
   {
     title: 'Reports',
