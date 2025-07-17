@@ -263,31 +263,6 @@ const DataEntry: React.FC = () => {
     doc.save('data-entries.pdf');
   };
 
-  // Add this handler for Excel import
-  const handleExcelImport = async (entries: any[]) => {
-    // Map imported Excel rows to Entry objects
-    const newEntries = entries.map((entry: any) => ({
-      date: entry.date || '',
-      sales: Number(entry.sales) || 0,
-      profit: Number(entry.profit) || 0,
-      category: entry.category || '',
-    }));
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await Promise.all(newEntries.map(entry =>
-        axios.post(API_URL, entry, { headers: { Authorization: `Bearer ${token}` } })
-      ));
-      setData(prev => [...prev, ...res.map(r => r.data)]);
-      setShowAnalytics(true);
-    } catch (err: any) {
-      setError('Failed to upload Excel entries');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Excel export handler (calls window.exportToExcel)
   const handleExportExcel = () => {
     if (typeof window !== 'undefined' && window.exportToExcel) {
