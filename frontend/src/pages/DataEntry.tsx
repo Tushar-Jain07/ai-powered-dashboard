@@ -17,6 +17,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 
 interface Entry {
+  _id?: string;
+  id?: string;
   date: string;
   sales: number;
   profit: number;
@@ -317,8 +319,8 @@ const DataEntry: React.FC = () => {
             <Box sx={{ flex: 1, minWidth: 300 }}>
               <PieChart
                 data={pieChartData}
-                dataKey="value"
-                nameKey="name"
+                valueKey="value"
+                labelKey="name"
                 title="Profit by Category"
                 height={300}
               />
