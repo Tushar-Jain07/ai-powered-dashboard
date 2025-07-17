@@ -16,7 +16,6 @@ import NotFound from './pages/NotFound';
 // Components
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import ChatAssistant from './components/ChatAssistant';
 import PWAInstall from './components/PWAInstall';
 
 // Contexts
@@ -138,7 +137,6 @@ function App() {
         {/* PWA Components - Only show when authenticated */}
         {isAuthenticated && (
           <>
-            <ChatAssistant />
             <PWAInstall />
           </>
         )}

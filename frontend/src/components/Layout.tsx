@@ -47,7 +47,6 @@ import {
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import ChatAssistant from './ChatAssistant';
 import pwaService from '../services/pwaService';
 
 const drawerWidth = 260;
@@ -506,7 +505,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Box>
         
         <Box sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', p: 2 }}>
-          <ChatAssistant />
+          {/* <ChatAssistant /> */}
         </Box>
       </Drawer>
 
