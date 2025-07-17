@@ -494,7 +494,7 @@ const DataEntry: React.FC = () => {
                 label="From"
                 value={filterDateFrom}
                 onChange={setFilterDateFrom}
-                renderInput={(params: any) => <TextField {...params} fullWidth />}
+                slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
             <Grid item xs={12} sm={2}>
@@ -502,7 +502,7 @@ const DataEntry: React.FC = () => {
                 label="To"
                 value={filterDateTo}
                 onChange={setFilterDateTo}
-                renderInput={(params: any) => <TextField {...params} fullWidth />}
+                slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
             <Grid item xs={12} sm={1}>
