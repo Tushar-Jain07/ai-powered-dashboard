@@ -296,15 +296,15 @@ const DataEntry: React.FC = () => {
   };
 
   // Excel import handler (calls window.importFromExcel)
-  const excelFileInputRef = useRef(null);
+  const excelFileInputRef = useRef<HTMLInputElement>(null);
   const handleExcelImportClick = () => {
     excelFileInputRef.current?.click();
   };
-  const handleExcelImport = (e) => {
+  const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || typeof window === 'undefined' || !window.importFromExcel) return;
-    window.importFromExcel(file, async (entries) => {
-      const newEntries = entries.map((entry) => ({
+    window.importFromExcel(file, async (entries: any[]) => {
+      const newEntries = entries.map((entry: any) => ({
         date: entry.date || '',
         sales: Number(entry.sales) || 0,
         profit: Number(entry.profit) || 0,
@@ -342,6 +342,14 @@ const DataEntry: React.FC = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
+
+  // TypeScript: declare window Excel utils
+  declare global {
+    interface Window {
+      exportToExcel?: (data: any[], filename?: string) => void;
+      importFromExcel?: (file: File, cb: (entries: any[]) => void) => void;
+    }
+  }
 
   return (
     <Box sx={{ p: 3 }}>
