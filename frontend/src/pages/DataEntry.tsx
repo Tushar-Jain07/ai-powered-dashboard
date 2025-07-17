@@ -138,15 +138,15 @@ const DataEntry: React.FC = () => {
       type: 'actions',
       headerName: 'Actions',
       width: 100,
-      getActions: (params) => [
+      getActions: (params: any) => [
         <GridActionsCellItem icon={<EditIcon />} label="Edit" onClick={() => handleEdit(params.row.id)} />,
         <GridActionsCellItem icon={<DeleteIcon />} label="Delete" onClick={() => handleDelete(params.row.id)} />,
       ],
     },
   ];
 
-  // Add id for DataGrid
-  const rows = data.map((d, i) => ({ ...d, id: i }));
+  // Fix DataGrid row id and types
+  const rows = data.map((d) => ({ ...d, id: (d as any)._id || (d as any).id }));
 
   // Edit entry
   const handleEdit = (id: number) => {
@@ -208,6 +208,9 @@ const DataEntry: React.FC = () => {
     acc[d.category] = (acc[d.category] || 0) + d.profit;
     return acc;
   }, {} as Record<string, number>);
+
+  // Fix PieChart data mapping
+  const pieChartData = Object.entries(profitByCategory).map(([category, profit]) => ({ name: category, value: profit }));
 
   return (
     <Box sx={{ p: 3 }}>
@@ -313,9 +316,9 @@ const DataEntry: React.FC = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: 300 }}>
               <PieChart
-                data={Object.entries(profitByCategory).map(([category, profit]) => ({ category, profit }))}
-                dataKey="profit"
-                nameKey="category"
+                data={pieChartData}
+                dataKey="value"
+                nameKey="name"
                 title="Profit by Category"
                 height={300}
               />
