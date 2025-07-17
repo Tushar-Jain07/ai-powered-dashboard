@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import {
   Box,
   Typography,
@@ -11,14 +11,11 @@ import {
 } from '@mui/material';
 import BarChart from '../components/charts/BarChart';
 import PieChart from '../components/charts/PieChart';
-import { useRef } from 'react';
 import { DataGrid, GridColDef, GridActionsCellItem } from '@mui/x-data-grid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
-import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 interface Entry {
   _id?: string;
@@ -222,13 +219,9 @@ const DataEntry: React.FC = () => {
   // Fix PieChart data mapping
   const pieChartData = Object.entries(profitByCategory).map(([category, profit]) => ({ name: category, value: profit }));
 
-  // Export handlers
-  const handleExportExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Data');
-    XLSX.writeFile(wb, 'data-entries.xlsx');
-  };
+  // Dynamically import ExcelExportButton
+  const ExcelExportButton = React.lazy(() => import('../components/ExcelExportButton'));
+  const ExcelImportButton = React.lazy(() => import('../components/ExcelImportButton'));
 
   const handleExportTSV = () => {
     if (!data.length) return;
@@ -244,12 +237,53 @@ const DataEntry: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const doc = new jsPDF();
+    const autoTable = (await import('jspdf-autotable')).default;
     const header = Object.keys(data[0]).filter(k => k !== '_id' && k !== 'id');
     const rows = data.map(row => header.map(h => row[h]));
-    (doc as any).autoTable({ head: [header], body: rows });
+    autoTable(doc, { head: [header], body: rows });
     doc.save('data-entries.pdf');
+  };
+
+  // Add this handler for Excel import
+  const handleExcelImport = async (entries: any[]) => {
+    // Map imported Excel rows to Entry objects
+    const newEntries = entries.map((entry: any) => ({
+      date: entry.date || '',
+      sales: Number(entry.sales) || 0,
+      profit: Number(entry.profit) || 0,
+      category: entry.category || '',
+    }));
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await Promise.all(newEntries.map(entry =>
+        axios.post(API_URL, entry, { headers: { Authorization: `Bearer ${token}` } })
+      ));
+      setData(prev => [...prev, ...res.map(r => r.data)]);
+      setShowAnalytics(true);
+    } catch (err: any) {
+      setError('Failed to upload Excel entries');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // CSV export handler
+  const handleExportCSV = () => {
+    if (!data.length) return;
+    const header = Object.keys(data[0]).filter(k => k !== '_id' && k !== 'id');
+    const rows = data.map(row => header.map(h => row[h]).join(','));
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'data-entries.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -325,6 +359,9 @@ const DataEntry: React.FC = () => {
                 style={{ display: 'none' }}
                 onChange={handleCSVUpload}
               />
+              <Suspense fallback={<span>Loading...</span>}>
+                <ExcelImportButton onImport={handleExcelImport} />
+              </Suspense>
             </Grid>
           </Grid>
         </form>
@@ -332,7 +369,10 @@ const DataEntry: React.FC = () => {
 
       {data.length > 0 && (
         <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
-          <Button variant="outlined" onClick={handleExportExcel}>Export Excel</Button>
+          <Suspense fallback={<span>Loading...</span>}>
+            <ExcelExportButton data={data} filename="data-entries.xlsx" />
+          </Suspense>
+          <Button variant="outlined" onClick={handleExportCSV}>Export CSV</Button>
           <Button variant="outlined" onClick={handleExportPDF}>Export PDF</Button>
           <Button variant="outlined" onClick={handleExportTSV}>Export TSV</Button>
         </Box>
