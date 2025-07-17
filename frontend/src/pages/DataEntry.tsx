@@ -493,7 +493,7 @@ const DataEntry: React.FC = () => {
               <DatePicker
                 label="From"
                 value={filterDateFrom}
-                onChange={setFilterDateFrom}
+                onChange={value => setFilterDateFrom(value as Date | null)}
                 slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
@@ -501,7 +501,7 @@ const DataEntry: React.FC = () => {
               <DatePicker
                 label="To"
                 value={filterDateTo}
-                onChange={setFilterDateTo}
+                onChange={value => setFilterDateTo(value as Date | null)}
                 slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
