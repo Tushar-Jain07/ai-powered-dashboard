@@ -25,6 +25,7 @@ import {
   Fullscreen as FullscreenIcon,
   Settings as SettingsIcon,
   Download as DownloadIcon,
+  Sync as SyncIcon,
 } from '@mui/icons-material';
 import KPICard from '../components/KPICard';
 import Widget from '../components/Widget';
@@ -35,6 +36,7 @@ import ExportButton from '../components/ExportButton';
 import GridItem from '../components/GridItem';
 import DraggableDashboard from '../components/DraggableDashboard';
 import { useNotifications } from '../contexts/NotificationContext';
+import pwaService from '../services/pwaService';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -130,6 +132,11 @@ const Dashboard: React.FC = () => {
       addNotification('Dashboard data refreshed successfully', 'success');
     }, 1000);
   }, [generateMockData, addNotification]);
+
+  const handleBackgroundSync = useCallback(async () => {
+    await pwaService.syncDashboardData();
+    addNotification('Background sync registered', 'info');
+  }, [addNotification]);
 
   const handleSearch = useCallback((query: string, filters: any[]) => {
     let results = [...data];
@@ -243,37 +250,24 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+    <Box sx={{ p: isMobile ? 1 : 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" sx={{ flexGrow: 1 }}>
           Dashboard
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Overview of your business metrics and KPIs
-        </Typography>
-      </Box>
-
-      {/* Action buttons */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-          <Button
-            variant="contained"
-          startIcon={<AddIcon />}
-        >
-          Add Widget
-              </Button>
-              <Button
-                variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
-          </Button>
-        <Tooltip title="Fullscreen">
-          <IconButton>
-            <FullscreenIcon />
-          </IconButton>
+        <Tooltip title="Refresh Data">
+          <span>
+            <IconButton onClick={handleRefresh} disabled={isRefreshing || isLoading} color="primary">
+              {isRefreshing ? <CircularProgress size={24} /> : <RefreshIcon />}
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title="Background Sync">
+          <span>
+            <IconButton onClick={handleBackgroundSync} color="secondary">
+              <SyncIcon />
+            </IconButton>
+          </span>
         </Tooltip>
       </Box>
 
