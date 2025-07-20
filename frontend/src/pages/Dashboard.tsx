@@ -25,7 +25,6 @@ import {
   Fullscreen as FullscreenIcon,
   Settings as SettingsIcon,
   Download as DownloadIcon,
-  Sync as SyncIcon,
 } from '@mui/icons-material';
 import KPICard from '../components/KPICard';
 import Widget from '../components/Widget';
@@ -132,11 +131,6 @@ const Dashboard: React.FC = () => {
       addNotification('Dashboard data refreshed successfully', 'success');
     }, 1000);
   }, [generateMockData, addNotification]);
-
-  const handleBackgroundSync = useCallback(async () => {
-    await pwaService.syncDashboardData();
-    addNotification('Background sync registered', 'info');
-  }, [addNotification]);
 
   const handleSearch = useCallback((query: string, filters: any[]) => {
     let results = [...data];
@@ -259,13 +253,6 @@ const Dashboard: React.FC = () => {
           <span>
             <IconButton onClick={handleRefresh} disabled={isRefreshing || isLoading} color="primary">
               {isRefreshing ? <CircularProgress size={24} /> : <RefreshIcon />}
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip title="Background Sync">
-          <span>
-            <IconButton onClick={handleBackgroundSync} color="secondary">
-              <SyncIcon />
             </IconButton>
           </span>
         </Tooltip>
