@@ -1,3 +1,4 @@
+// Force Vercel fresh deployment - cache busting comment
 import React, { useState } from 'react';
 import {
   Avatar,
