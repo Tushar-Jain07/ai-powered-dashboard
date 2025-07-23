@@ -156,19 +156,7 @@ const Login: React.FC = () => {
               </Box>
 
               {/* Tech stack */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom fontWeight="600">
-                  Built with Modern Technologies
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip label="React" color="primary" variant="outlined" />
-                  <Chip label="TypeScript" color="primary" variant="outlined" />
-                  <Chip label="Node.js" color="primary" variant="outlined" />
-                  <Chip label="Material-UI" color="primary" variant="outlined" />
-                  <Chip label="PWA" color="primary" variant="outlined" />
-                  <Chip label="AI/ML" color="primary" variant="outlined" />
-                </Box>
-              </Box>
+              {/* Removed 'Built with Modern Technologies' and Chip components as requested */}
             </Box>
           </Grid>
 
