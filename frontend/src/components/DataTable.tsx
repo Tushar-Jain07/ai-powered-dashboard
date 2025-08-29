@@ -18,6 +18,7 @@ import {
   Fade,
   Zoom,
   TextField,
+  Skeleton,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -313,3 +314,19 @@ const DataTable: React.FC<DataTableProps> = ({
 };
 
 export default DataTable; 
+
+export const DataTableSkeleton: React.FC<{ rows?: number }> = ({ rows = 8 }) => {
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', gap: 2, mb: 1 }}>
+        <Skeleton variant="rectangular" height={36} width={180} />
+        <Skeleton variant="rectangular" height={36} width={120} />
+      </Box>
+      <Box>
+        {Array.from({ length: rows }).map((_, idx) => (
+          <Skeleton key={idx} variant="rectangular" height={48} sx={{ mb: 1 }} />
+        ))}
+      </Box>
+    </Box>
+  );
+};

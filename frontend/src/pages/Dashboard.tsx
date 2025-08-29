@@ -27,8 +27,9 @@ import {
   Download as DownloadIcon,
 } from '@mui/icons-material';
 import KPICard from '../components/KPICard';
+import DataTable, { DataTableSkeleton } from '../components/DataTable';
 import Widget from '../components/Widget';
-import DataTable from '../components/DataTable';
+// DataTable import updated above to include skeleton
 import AdvancedSearch from '../components/AdvancedSearch';
 import AdvancedAnalytics from '../components/AdvancedAnalytics';
 import ExportButton from '../components/ExportButton';
@@ -235,13 +236,7 @@ const Dashboard: React.FC = () => {
     { id: 'status', label: 'Status', minWidth: 120 },
   ], []);
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // keep rendering page shell; show skeletons inline while loading
 
   return (
     <Box sx={{ p: isMobile ? 1 : 3 }}>
@@ -292,7 +287,18 @@ const Dashboard: React.FC = () => {
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {kpiData.map((kpi) => (
               <Box key={kpi.title} sx={{ width: { xs: '100%', sm: '48%', md: '23%' }, mb: 2 }}>
-                <KPICard {...kpi} />
+                {isLoading ? (
+                  <Card>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        <Typography variant="body2" color="text.secondary">Loading…</Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <KPICard {...kpi} />
+                )}
               </Box>
             ))}
           </Box>
@@ -317,13 +323,17 @@ const Dashboard: React.FC = () => {
                 </Box>
 
           <Box sx={{ mt: 2 }}>
-            <DataTable 
-              columns={tableColumns} 
-              data={filteredData}
-              pagination={true}
-              exportable={true}
-              onExport={handleExport}
-            />
+            {isLoading ? (
+              <DataTableSkeleton />
+            ) : (
+              <DataTable 
+                columns={tableColumns} 
+                data={filteredData}
+                pagination={true}
+                exportable={true}
+                onExport={handleExport}
+              />
+            )}
           </Box>
           </Widget>
           </TabPanel>

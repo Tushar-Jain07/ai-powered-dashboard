@@ -80,6 +80,20 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'Test endpoint working' });
 });
 
+// Helpers
+function signJwt(payload) {
+  return jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '7d' });
+}
+
+function requireRole(roles = []) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    const allowed = Array.isArray(roles) ? roles : [roles];
+    if (allowed.length === 0 || allowed.includes(req.user.role)) return next();
+    return res.status(403).json({ error: 'Forbidden' });
+  };
+}
+
 // API routes
 app.post('/api/auth/login', (req, res) => {
   // Mock authentication endpoint - enhanced for portfolio
@@ -90,25 +104,13 @@ app.post('/api/auth/login', (req, res) => {
   
   // Demo account for portfolio visitors
   if (email === 'demo@ai-dashmind.com' && password === 'demo123') {
-    return res.json({
-      token: 'demo-jwt-token-portfolio',
-      _id: 'demo-user-1',
-      name: 'Demo User',
-      email: 'demo@ai-dashmind.com',
-      role: 'admin',
-      isDemo: true
-    });
+    const token = signJwt({ id: 'demo-user-1', email, role: 'admin', isDemo: true });
+    return res.json({ token, _id: 'demo-user-1', name: 'Demo User', email, role: 'admin', isDemo: true });
   }
   
   // Regular demo login (any credentials work)
-  res.json({
-    token: 'mock-jwt-token',
-    _id: '1',
-    name: 'Demo User',
-    email: email || 'user@example.com',
-    role: 'admin',
-    isDemo: false
-  });
+  const token = signJwt({ id: '1', email: email || 'user@example.com', role: 'admin', isDemo: false });
+  res.json({ token, _id: '1', name: 'Demo User', email: email || 'user@example.com', role: 'admin', isDemo: false });
 });
 
 app.post('/api/auth/register', (req, res) => {
@@ -122,32 +124,13 @@ app.post('/api/auth/register', (req, res) => {
   });
 });
 
-app.get('/api/auth/me', (req, res) => {
-  // Mock user profile endpoint
-  const authHeader = req.headers.authorization;
-  
-  // Check if it's the demo token
-  if (authHeader && authHeader.includes('demo-jwt-token-portfolio')) {
-    return res.json({
-      _id: 'demo-user-1',
-      name: 'Demo User',
-      email: 'demo@ai-dashmind.com',
-      role: 'admin',
-      isDemo: true
-    });
-  }
-  
-  res.json({
-    _id: '1',
-    name: 'Demo User',
-    email: 'user@example.com',
-    role: 'admin',
-    isDemo: false
-  });
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  const { id, email, role, isDemo } = req.user;
+  res.json({ _id: id, name: isDemo ? 'Demo User' : 'Demo User', email: email || 'user@example.com', role, isDemo: !!isDemo });
 });
 
 // Additional API endpoints for dashboard data
-app.get('/api/dashboard/stats', (req, res) => {
+app.get('/api/dashboard/stats', authenticateToken, requireRole(['admin', 'user']), (req, res) => {
   res.json({
     totalUsers: 1250,
     activeUsers: 847,
@@ -156,7 +139,7 @@ app.get('/api/dashboard/stats', (req, res) => {
   });
 });
 
-app.get('/api/dashboard/analytics', (req, res) => {
+app.get('/api/dashboard/analytics', authenticateToken, requireRole(['admin', 'user']), (req, res) => {
   res.json({
     chartData: [
       { month: 'Jan', value: 100 },
@@ -169,8 +152,8 @@ app.get('/api/dashboard/analytics', (req, res) => {
   });
 });
 
-// AI chat endpoint
-app.post('/api/chat', async (req, res) => {
+// AI chat endpoint (non-streaming)
+app.post('/api/chat', authenticateToken, async (req, res) => {
   try {
     if (!openai) {
       return res.status(500).json({ 
@@ -201,6 +184,50 @@ app.post('/api/chat', async (req, res) => {
   } catch (error) {
     console.error('OpenAI API error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to generate response from OpenAI' });
+  }
+});
+
+// AI chat streaming endpoint (Server-Sent Events)
+app.get('/api/chat/stream', authenticateToken, async (req, res) => {
+  try {
+    if (!openai) {
+      res.writeHead(500, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
+      res.write(`event: error\n`);
+      res.write(`data: ${JSON.stringify({ error: 'OpenAI API key not configured' })}\n\n`);
+      return res.end();
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    });
+
+    const { prompt, messages } = req.query;
+    const chatMessages = messages ? JSON.parse(String(messages)) : [{ role: 'user', content: String(prompt || '') }];
+
+    const stream = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: chatMessages,
+      temperature: 0.7,
+      max_tokens: 512,
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content;
+      if (delta) {
+        res.write(`data: ${JSON.stringify({ token: delta })}\n\n`);
+      }
+    }
+    res.write('event: end\n');
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error) {
+    console.error('OpenAI stream error:', error.response?.data || error.message);
+    res.write(`event: error\n`);
+    res.write(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`);
+    res.end();
   }
 });
 

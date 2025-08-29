@@ -1,23 +1,24 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { CssBaseline, Box } from '@mui/material';
 
-// Import pages directly
-import Dashboard from './pages/Dashboard';
-import Reports from './pages/Reports';
-import MLModels from './pages/MLModels';
-import Profile from './pages/Profile';
-import Settings from './pages/Settings';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import NotFound from './pages/NotFound';
-import DataEntry from './pages/DataEntry';
+// Lazy-load pages for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Reports = lazy(() => import('./pages/Reports'));
+const MLModels = lazy(() => import('./pages/MLModels'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const DataEntry = lazy(() => import('./pages/DataEntry'));
 
 // Components
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import PWAInstall from './components/PWAInstall';
+import RouteFallback from './components/RouteFallback';
 
 // Contexts
 import { useAuth } from './contexts/AuthContext';
@@ -56,6 +57,7 @@ function App() {
         minHeight: '100vh',
         backgroundColor: theme => theme.palette.background.default,
       }}>
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Public routes */}
           <Route 
@@ -142,6 +144,7 @@ function App() {
             )
           } />
         </Routes>
+        </Suspense>
 
         {/* PWA Components - Only show when authenticated */}
         {isAuthenticated && (

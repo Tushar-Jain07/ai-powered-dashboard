@@ -121,10 +121,50 @@ const NaturalLanguageQuery: React.FC<NaturalLanguageQueryProps> = ({
 
     setIsProcessing(true);
     try {
-      // Simulate AI processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Stream from backend SSE endpoint
+      const controller = new AbortController();
+      const signal = controller.signal;
+      const url = `/api/chat/stream?prompt=${encodeURIComponent(query)}`;
 
-      const response = `Analysis for "${query}": Based on the data, I found relevant insights and trends. Here are the key metrics and visualizations you requested.`;
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/event-stream',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        signal,
+      });
+      if (!resp.ok || !resp.body) {
+        throw new Error('Failed to start stream');
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let accumulated = '';
+      // Read the stream and build response
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // SSE frames split by double newlines
+        const events = chunk.split('\n\n');
+        for (const event of events) {
+          if (!event) continue;
+          if (event.startsWith('data:')) {
+            const json = event.replace(/^data:\s*/, '');
+            try {
+              const { token } = JSON.parse(json);
+              if (token) {
+                accumulated += token;
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+      }
+
+      const response = accumulated || `No output for "${query}"`;
 
       const newQuery: QueryHistory = {
         id: Date.now().toString(),
