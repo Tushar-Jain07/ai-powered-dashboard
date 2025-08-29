@@ -153,10 +153,8 @@ const DataEntry: React.FC = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await Promise.all(newEntries.map(entry =>
-          axios.post(API_URL, entry, { headers: { Authorization: `Bearer ${token}` } })
-        ));
-        setData(prev => [...prev, ...res.map(r => r.data)]);
+        const res = await axios.post(`${API_URL}/bulk`, newEntries, { headers: { Authorization: `Bearer ${token}` } });
+        setData(prev => [...prev, ...res.data]);
         setShowAnalytics(true);
       } catch (err: any) {
         setError('Failed to upload CSV entries');
@@ -319,10 +317,8 @@ const DataEntry: React.FC = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await Promise.all(newEntries.map(entry =>
-          axios.post(API_URL, entry, { headers: { Authorization: `Bearer ${token}` } })
-        ));
-        setData(prev => [...prev, ...res.map(r => r.data)]);
+        const res = await axios.post(`${API_URL}/bulk`, newEntries, { headers: { Authorization: `Bearer ${token}` } });
+        setData(prev => [...prev, ...res.data]);
         setShowAnalytics(true);
       } catch (err) {
         setError('Failed to upload Excel entries');

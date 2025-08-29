@@ -269,6 +269,33 @@ app.post('/api/user-data', authenticateToken, async (req, res) => {
   res.status(201).json(entry);
 });
 
+// Bulk create entries
+app.post('/api/user-data/bulk', authenticateToken, async (req, res) => {
+  try {
+    const entries = Array.isArray(req.body) ? req.body : req.body?.entries;
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return res.status(400).json({ error: 'entries array is required' });
+    }
+    const sanitized = entries
+      .filter(e => e && e.date && e.category && e.sales != null && e.profit != null)
+      .map(e => ({
+        date: String(e.date),
+        sales: Number(e.sales),
+        profit: Number(e.profit),
+        category: String(e.category),
+        userId: req.user.id,
+      }));
+    if (sanitized.length === 0) {
+      return res.status(400).json({ error: 'No valid entries provided' });
+    }
+    const created = await DataEntry.insertMany(sanitized, { ordered: false });
+    res.status(201).json(created);
+  } catch (err) {
+    console.error('Bulk insert error:', err.message);
+    res.status(500).json({ error: 'Failed to upload entries' });
+  }
+});
+
 app.put('/api/user-data/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { date, sales, profit, category } = req.body;
