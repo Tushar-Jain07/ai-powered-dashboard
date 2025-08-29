@@ -13,11 +13,16 @@ if (process.env.OPENAI_API_KEY) {
   });
 }
 
-// Connect to MongoDB
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ai_dashboard';
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Connect to MongoDB (fallback to in-memory store if not configured)
+const mongoUri = process.env.MONGODB_URI || '';
+const useMemoryStore = !mongoUri;
+if (!useMemoryStore) {
+  mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection error:', err));
+} else {
+  console.warn('MONGODB_URI not set – using in-memory data store for user-data endpoints');
+}
 
 // Create Express app
 const app = express();
@@ -239,7 +244,10 @@ const dataEntrySchema = new mongoose.Schema({
   category: { type: String, required: true },
   userId: { type: String, required: true },
 }, { timestamps: true });
-const DataEntry = mongoose.model('DataEntry', dataEntrySchema);
+const DataEntry = !useMemoryStore ? mongoose.model('DataEntry', dataEntrySchema) : null;
+
+// In-memory fallback store: { [userId: string]: Entry[] }
+const memoryStore = useMemoryStore ? {} : null;
 
 // JWT auth middleware
 function authenticateToken(req, res, next) {
@@ -255,6 +263,10 @@ function authenticateToken(req, res, next) {
 
 // CRUD endpoints for user data
 app.get('/api/user-data', authenticateToken, async (req, res) => {
+  if (useMemoryStore) {
+    const entries = memoryStore[req.user.id] || [];
+    return res.json(entries);
+  }
   const entries = await DataEntry.find({ userId: req.user.id });
   res.json(entries);
 });
@@ -263,6 +275,12 @@ app.post('/api/user-data', authenticateToken, async (req, res) => {
   const { date, sales, profit, category } = req.body;
   if (!date || sales == null || profit == null || !category) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+  if (useMemoryStore) {
+    const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, date, sales, profit, category, userId: req.user.id };
+    memoryStore[req.user.id] = memoryStore[req.user.id] || [];
+    memoryStore[req.user.id].push(entry);
+    return res.status(201).json(entry);
   }
   const entry = new DataEntry({ date, sales, profit, category, userId: req.user.id });
   await entry.save();
@@ -288,6 +306,12 @@ app.post('/api/user-data/bulk', authenticateToken, async (req, res) => {
     if (sanitized.length === 0) {
       return res.status(400).json({ error: 'No valid entries provided' });
     }
+    if (useMemoryStore) {
+      memoryStore[req.user.id] = memoryStore[req.user.id] || [];
+      const created = sanitized.map(e => ({ ...e, _id: `${Date.now()}-${Math.random().toString(36).slice(2)}` }));
+      memoryStore[req.user.id].push(...created);
+      return res.status(201).json(created);
+    }
     const created = await DataEntry.insertMany(sanitized, { ordered: false });
     res.status(201).json(created);
   } catch (err) {
@@ -299,6 +323,14 @@ app.post('/api/user-data/bulk', authenticateToken, async (req, res) => {
 app.put('/api/user-data/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { date, sales, profit, category } = req.body;
+  if (useMemoryStore) {
+    const list = memoryStore[req.user.id] || [];
+    const idx = list.findIndex(e => String(e._id) === String(id));
+    if (idx < 0) return res.status(404).json({ error: 'Entry not found' });
+    const updated = { ...list[idx], date, sales: Number(sales), profit: Number(profit), category };
+    list[idx] = updated;
+    return res.json(updated);
+  }
   const entry = await DataEntry.findOneAndUpdate(
     { _id: id, userId: req.user.id },
     { date, sales, profit, category },
@@ -310,6 +342,13 @@ app.put('/api/user-data/:id', authenticateToken, async (req, res) => {
 
 app.delete('/api/user-data/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
+  if (useMemoryStore) {
+    const list = memoryStore[req.user.id] || [];
+    const before = list.length;
+    memoryStore[req.user.id] = list.filter(e => String(e._id) !== String(id));
+    if (before === memoryStore[req.user.id].length) return res.status(404).json({ error: 'Entry not found' });
+    return res.json({ success: true });
+  }
   const result = await DataEntry.deleteOne({ _id: id, userId: req.user.id });
   if (result.deletedCount === 0) return res.status(404).json({ error: 'Entry not found' });
   res.json({ success: true });
