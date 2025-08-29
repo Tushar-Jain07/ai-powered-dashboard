@@ -17,6 +17,10 @@ const dataEntrySchema = new mongoose.Schema({
 }, { timestamps: true });
 const DataEntry = mongoose.models.DataEntry || mongoose.model('DataEntry', dataEntrySchema);
 
+// In-memory fallback if no DB connection
+const useMemoryStore = mongoose.connection.readyState === 0;
+const memoryStore = useMemoryStore ? {} : null;
+
 // JWT auth helper
 function getUserFromToken(req) {
   const authHeader = req.headers['authorization'] || req.headers['Authorization'];
@@ -35,6 +39,9 @@ module.exports = async (req, res) => {
 
   // GET /api/user-data
   if (req.method === 'GET') {
+    if (useMemoryStore) {
+      return res.status(200).json(memoryStore[user.id] || []);
+    }
     const entries = await DataEntry.find({ userId: user.id });
     return res.status(200).json(entries);
   }
@@ -45,6 +52,12 @@ module.exports = async (req, res) => {
     if (!date || sales == null || profit == null || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+    if (useMemoryStore) {
+      const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, date, sales, profit, category, userId: user.id };
+      memoryStore[user.id] = memoryStore[user.id] || [];
+      memoryStore[user.id].push(entry);
+      return res.status(201).json(entry);
+    }
     const entry = new DataEntry({ date, sales, profit, category, userId: user.id });
     await entry.save();
     return res.status(201).json(entry);
@@ -54,6 +67,14 @@ module.exports = async (req, res) => {
   if (req.method === 'PUT') {
     const { id } = req.query;
     const { date, sales, profit, category } = req.body;
+    if (useMemoryStore) {
+      const list = memoryStore[user.id] || [];
+      const idx = list.findIndex(e => String(e._id) === String(id));
+      if (idx < 0) return res.status(404).json({ error: 'Entry not found' });
+      const updated = { ...list[idx], date, sales: Number(sales), profit: Number(profit), category };
+      list[idx] = updated;
+      return res.status(200).json(updated);
+    }
     const entry = await DataEntry.findOneAndUpdate(
       { _id: id, userId: user.id },
       { date, sales, profit, category },
@@ -66,6 +87,13 @@ module.exports = async (req, res) => {
   // DELETE /api/user-data?id=xxx
   if (req.method === 'DELETE') {
     const { id } = req.query;
+    if (useMemoryStore) {
+      const list = memoryStore[user.id] || [];
+      const before = list.length;
+      memoryStore[user.id] = list.filter(e => String(e._id) !== String(id));
+      if (before === memoryStore[user.id].length) return res.status(404).json({ error: 'Entry not found' });
+      return res.status(200).json({ success: true });
+    }
     const result = await DataEntry.deleteOne({ _id: id, userId: user.id });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Entry not found' });
     return res.status(200).json({ success: true });
