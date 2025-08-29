@@ -44,7 +44,7 @@ const DataEntry: React.FC = () => {
   const [data, setData] = useState<Entry[]>([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -182,33 +182,39 @@ const DataEntry: React.FC = () => {
       filterable: false,
       renderCell: (params: any) => (
         <>
-          <IconButton size="small" onClick={() => handleEdit(params.row.id)}><EditIcon fontSize="small" /></IconButton>
-          <IconButton size="small" onClick={() => handleDelete(params.row.id)}><DeleteIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => handleEdit(String(params.row.id))}><EditIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => handleDelete(String(params.row.id))}><DeleteIcon fontSize="small" /></IconButton>
         </>
       ),
     },
   ];
 
   // Fix DataGrid row id and types
-  const rows = filteredData.map((d) => ({ ...d, id: (d as any)._id || (d as any).id }));
+  const rows = filteredData.map((d) => ({ ...d, id: String((d as any)._id || (d as any).id) }));
 
   // Edit entry
-  const handleEdit = (id: number) => {
-    setEditIndex(id);
-    setForm(data[id]);
+  const handleEdit = (rowId: string) => {
+    setEditingId(rowId);
+    const idx = data.findIndex((e) => String((e as any)._id || (e as any).id) === rowId);
+    if (idx >= 0) setForm({
+      date: data[idx].date,
+      sales: data[idx].sales,
+      profit: data[idx].profit,
+      category: data[idx].category,
+    });
   };
   // Delete entry (DELETE)
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (rowId: string) => {
     setLoading(true);
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const entryId = data[id]._id || data[id].id;
+      const entryId = rowId;
       await axios.delete(`${API_URL}/${entryId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setData(data.filter((_, i) => i !== id));
-      if (editIndex === id) setEditIndex(null);
+      setData(data.filter((e) => String((e as any)._id || (e as any).id) !== rowId));
+      if (editingId === rowId) setEditingId(null);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to delete entry');
     } finally {
@@ -219,19 +225,17 @@ const DataEntry: React.FC = () => {
   // Edit entry (PUT)
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editIndex !== null) {
+    if (editingId) {
       setLoading(true);
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const entryId = data[editIndex]._id || data[editIndex].id;
-        const res = await axios.put(`${API_URL}/${entryId}`, form, {
+        const res = await axios.put(`${API_URL}/${editingId}`, form, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const updated = [...data];
-        updated[editIndex] = res.data;
+        const updated = data.map((e) => (String((e as any)._id || (e as any).id) === editingId ? res.data : e));
         setData(updated);
-        setEditIndex(null);
+        setEditingId(null);
         setForm({ date: '', sales: 0, profit: 0, category: '' });
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to update entry');
@@ -377,7 +381,7 @@ const DataEntry: React.FC = () => {
       {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
       {loading && <Typography color="primary" sx={{ mb: 2 }}>Loading...</Typography>}
       <Paper sx={{ p: 3, mb: 4 }}>
-        <form onSubmit={editIndex === null ? handleSubmit : handleUpdate}>
+        <form onSubmit={editingId ? handleUpdate : handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={3}>
               <TextField
@@ -429,7 +433,7 @@ const DataEntry: React.FC = () => {
               </TextField>
             </Grid>
             <Grid item xs={12}>
-              <Button type="submit" variant="contained">{editIndex === null ? 'Add Entry' : 'Update Entry'}</Button>
+              <Button type="submit" variant="contained">{editingId ? 'Update Entry' : 'Add Entry'}</Button>
               <Button
                 variant="outlined"
                 sx={{ ml: 2 }}
