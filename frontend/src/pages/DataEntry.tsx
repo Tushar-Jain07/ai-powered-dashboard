@@ -103,7 +103,9 @@ const DataEntry: React.FC = () => {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const isNumericField = name === 'sales' || name === 'profit';
+    setForm({ ...form, [name]: isNumericField ? Number(value) : value });
   };
 
   // Add entry (POST)
@@ -208,7 +210,7 @@ const DataEntry: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const entryId = rowId;
-      await axios.delete(`${API_URL}/${entryId}`, {
+      await axios.delete(`${API_URL}?id=${encodeURIComponent(entryId)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData(data.filter((e) => String((e as any)._id || (e as any).id) !== rowId));
@@ -228,7 +230,7 @@ const DataEntry: React.FC = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.put(`${API_URL}/${editingId}`, form, {
+        const res = await axios.put(`${API_URL}?id=${encodeURIComponent(editingId)}`, form, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const updated = data.map((e) => (String((e as any)._id || (e as any).id) === editingId ? res.data : e));

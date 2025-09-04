@@ -46,19 +46,40 @@ module.exports = async (req, res) => {
     return res.status(200).json(entries);
   }
 
-  // POST /api/user-data
+  // POST /api/user-data (single) or /api/user-data/bulk
   if (req.method === 'POST') {
+    // Bulk insert if array provided
+    if (Array.isArray(req.body)) {
+      const items = req.body
+        .filter(i => i && i.date && i.category && i.sales != null && i.profit != null)
+        .map(i => ({
+          date: i.date,
+          sales: Number(i.sales),
+          profit: Number(i.profit),
+          category: i.category,
+          userId: user.id,
+        }));
+      if (useMemoryStore) {
+        memoryStore[user.id] = memoryStore[user.id] || [];
+        const created = items.map(i => ({ _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, ...i }));
+        memoryStore[user.id].push(...created);
+        return res.status(201).json(created);
+      }
+      const created = await DataEntry.insertMany(items);
+      return res.status(201).json(created);
+    }
+
     const { date, sales, profit, category } = req.body;
     if (!date || sales == null || profit == null || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     if (useMemoryStore) {
-      const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, date, sales, profit, category, userId: user.id };
+      const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, date, sales: Number(sales), profit: Number(profit), category, userId: user.id };
       memoryStore[user.id] = memoryStore[user.id] || [];
       memoryStore[user.id].push(entry);
       return res.status(201).json(entry);
     }
-    const entry = new DataEntry({ date, sales, profit, category, userId: user.id });
+    const entry = new DataEntry({ date, sales: Number(sales), profit: Number(profit), category, userId: user.id });
     await entry.save();
     return res.status(201).json(entry);
   }
