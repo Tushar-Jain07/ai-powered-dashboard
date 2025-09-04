@@ -24,7 +24,10 @@ import {
   Tooltip,
   LinearProgress,
   Chip,
+  BottomNavigation,
+  BottomNavigationAction,
 } from '@mui/material';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -117,6 +120,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   
   const [drawerOpen, setDrawerOpen] = useState(isDesktop);
+  const [bottomNav, setBottomNav] = useState(location.pathname);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
   const [userMenuAnchor, setUserMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
@@ -142,6 +146,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
   };
+  const handleDrawerOpen = () => setDrawerOpen(true);
+  const handleDrawerClose = () => setDrawerOpen(false);
   
   // Close drawer on mobile when clicking a link
   const handleMobileNavigation = () => {
@@ -465,22 +471,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      {/* Navigation Drawer */}
-      <Drawer
-        variant={isDesktop ? "permanent" : "temporary"}
-        open={drawerOpen}
-        onClose={isDesktop ? undefined : handleDrawerToggle}
-        role="navigation"
-        aria-label="Sidebar navigation"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
+      {/* Navigation Drawer (swipeable on mobile) */}
+      {isDesktop ? (
+        <Drawer
+          variant="permanent"
+          open={drawerOpen}
+          role="navigation"
+          aria-label="Sidebar navigation"
+          sx={{
             width: drawerWidth,
-            boxSizing: 'border-box',
-          },
-        }}
-      >
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+            },
+          }}
+        >
         <Toolbar sx={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -513,7 +519,55 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Box sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', p: 2 }}>
           {/* <ChatAssistant /> */}
         </Box>
-      </Drawer>
+        </Drawer>
+      ) : (
+        <SwipeableDrawer
+          open={drawerOpen}
+          onOpen={handleDrawerOpen}
+          onClose={handleDrawerClose}
+          role="navigation"
+          aria-label="Sidebar navigation"
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+            },
+          }}
+        >
+          <Toolbar sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            px: [1],
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                component="img"
+                src="/logo192.png"
+                alt="AI-Dashmind Logo"
+                sx={{ height: 36, width: 36, mr: 1 }}
+                aria-label="AI-Dashmind Logo"
+              />
+              <Typography variant="h6" noWrap component="div" sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
+                AI-Dashmind
+              </Typography>
+            </Box>
+            <IconButton onClick={handleDrawerClose} aria-label="Close sidebar">
+              <ChevronLeftIcon />
+            </IconButton>
+          </Toolbar>
+          
+          <Divider />
+          
+          <Box sx={{ overflow: 'auto', mt: 2 }}>
+            <List>{renderNavigationItems(navigationItems)}</List>
+          </Box>
+          
+          <Box sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', p: 2 }}>
+            {/* <ChatAssistant /> */}
+          </Box>
+        </SwipeableDrawer>
+      )}
 
       {/* Main Content */}
       <Box
@@ -539,6 +593,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Box sx={{ flexGrow: 1 }}>
           {children}
         </Box>
+      {/* Bottom navigation for mobile */}
+      {!isDesktop && (
+        <Box sx={{ position: 'sticky', bottom: 0, left: 0, right: 0, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
+          <BottomNavigation
+            showLabels
+            value={bottomNav}
+            onChange={(event, newValue) => {
+              setBottomNav(newValue);
+            }}
+          >
+            {navigationItems.map((item) => (
+              <BottomNavigationAction
+                key={item.title}
+                label={item.title}
+                icon={item.icon as any}
+                value={item.path}
+                component={Link}
+                to={item.path}
+              />
+            ))}
+          </BottomNavigation>
+        </Box>
+      )}
       </Box>
     </Box>
   );

@@ -105,6 +105,11 @@
     height: 24px;
     background-size: 12px 12px;
   }
+
+  /* Increase widget padding for touch */
+  .widget-container {
+    padding: 12px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -119,6 +124,11 @@
   /* Optimize for small screens */
   .widget-container {
     padding: 8px;
+  }
+
+  /* Reduce handle visibility to reduce clutter */
+  .react-resizable-handle {
+    opacity: 0.7;
   }
 }
 

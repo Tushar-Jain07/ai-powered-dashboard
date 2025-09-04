@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 
 export interface LineChartProps {
   data: Array<Record<string, any>>;
@@ -47,6 +47,7 @@ const LineChart: React.FC<LineChartProps> = ({
   tooltipFormatter,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box sx={{ width: '100%', height: height }}>
@@ -59,10 +60,10 @@ const LineChart: React.FC<LineChartProps> = ({
         <RechartsLineChart
           data={data}
           margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 25,
+            top: isMobile ? 0 : 5,
+            right: isMobile ? 10 : 30,
+            left: isMobile ? 5 : 20,
+            bottom: isMobile ? 10 : 25,
           }}
         >
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />}
@@ -109,8 +110,8 @@ const LineChart: React.FC<LineChartProps> = ({
           {showLegend && (
             <Legend
               wrapperStyle={{
-                paddingTop: 10,
-                fontSize: 12,
+                paddingTop: isMobile ? 4 : 10,
+                fontSize: isMobile ? 10 : 12,
                 color: theme.palette.text.primary,
               }}
             />
@@ -123,8 +124,8 @@ const LineChart: React.FC<LineChartProps> = ({
               dataKey={yKey.key}
               name={yKey.name || yKey.key}
               stroke={yKey.color || theme.palette.primary.main}
-              activeDot={{ r: 8 }}
-              strokeWidth={2}
+              activeDot={{ r: isMobile ? 4 : 8 }}
+              strokeWidth={isMobile ? 1.5 : 2}
             />
           ))}
         </RechartsLineChart>

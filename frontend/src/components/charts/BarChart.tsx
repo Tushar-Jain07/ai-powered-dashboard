@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Box, Typography, useTheme } from '@mui/material';
+import { Box, Typography, useTheme, useMediaQuery } from '@mui/material';
 
 export interface BarChartProps {
   data: Array<Record<string, any>>;
@@ -49,6 +49,7 @@ const BarChart: React.FC<BarChartProps> = ({
   layout = 'horizontal',
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Box sx={{ width: '100%', height: height }}>
@@ -62,10 +63,10 @@ const BarChart: React.FC<BarChartProps> = ({
           data={data}
           layout={layout}
           margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 25,
+            top: isMobile ? 0 : 5,
+            right: isMobile ? 10 : 30,
+            left: isMobile ? 5 : 20,
+            bottom: isMobile ? 10 : 25,
           }}
         >
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />}
@@ -115,8 +116,8 @@ const BarChart: React.FC<BarChartProps> = ({
           {showLegend && (
             <Legend
               wrapperStyle={{
-                paddingTop: 10,
-                fontSize: 12,
+                paddingTop: isMobile ? 4 : 10,
+                fontSize: isMobile ? 10 : 12,
                 color: theme.palette.text.primary,
               }}
             />
@@ -129,7 +130,7 @@ const BarChart: React.FC<BarChartProps> = ({
               name={yKey.name || yKey.key}
               fill={yKey.color || theme.palette.primary.main}
               stackId={yKey.stackId}
-              radius={[4, 4, 0, 0]}
+              radius={[3, 3, 0, 0]}
             />
           ))}
         </RechartsBarChart>

@@ -87,6 +87,10 @@ let theme = createTheme({
         root: {
           textTransform: 'none',
           fontWeight: 500,
+          minHeight: 40,
+          '@media (max-width:600px)': {
+            minHeight: 44,
+          },
         },
       },
     },
@@ -118,6 +122,18 @@ let theme = createTheme({
       styleOverrides: {
         root: {
           padding: '12px 16px',
+          '@media (max-width:600px)': {
+            padding: '10px 12px',
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          '@media (max-width:600px)': {
+            padding: 10,
+          },
         },
       },
     },

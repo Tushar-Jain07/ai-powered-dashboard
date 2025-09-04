@@ -20,6 +20,8 @@ import {
   TextField,
   Skeleton,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -66,6 +68,8 @@ const DataTable: React.FC<DataTableProps> = ({
   const [orderBy, setOrderBy] = useState<string>('');
   const [order, setOrder] = useState<Order>('asc');
   const [searchTerm, setSearchTerm] = useState('');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -205,92 +209,132 @@ const DataTable: React.FC<DataTableProps> = ({
           />
         )}
 
-        {/* Table */}
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="data table">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.id === 'actions' ? 'center' : 'left'}
-                    style={{ minWidth: column.minWidth }}
-                    sortDirection={orderBy === column.id ? order : false}
-                  >
-                    <TableSortLabel
-                      active={orderBy === column.id}
-                      direction={orderBy === column.id ? order : 'asc'}
-                      onClick={() => handleSort(column.id)}
+        {/* Table: desktop and tablet; Card list: mobile */}
+        {!isMobile ? (
+          <TableContainer sx={{ maxHeight: 440, overflowX: 'auto' }}>
+            <Table stickyHeader aria-label="data table">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.id === 'actions' ? 'center' : 'left'}
+                      style={{ minWidth: column.minWidth || 120 }}
+                      sortDirection={orderBy === column.id ? order : false}
+                    >
+                      <TableSortLabel
+                        active={orderBy === column.id}
+                        direction={orderBy === column.id ? order : 'asc'}
+                        onClick={() => handleSort(column.id)}
+                        sx={{
+                          '&.MuiTableSortLabel-active': {
+                            color: 'primary.main',
+                          },
+                        }}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedData.map((row, index) => (
+                  <Zoom in={true} timeout={100 * index} key={row.id || index}>
+                    <TableRow
+                      hover
+                      onClick={() => handleRowClick(row)}
                       sx={{
-                        '&.MuiTableSortLabel-active': {
-                          color: 'primary.main',
+                        '&:last-child td, &:last-child th': { border: 0 },
+                        transition: 'all 0.2s ease',
+                        cursor: onRowClick ? 'pointer' : 'default',
+                        '&:hover': {
+                          backgroundColor: theme => theme.palette.action.hover,
+                          transform: 'scale(1.01)',
                         },
                       }}
                     >
-                      {column.label}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedData.map((row, index) => (
-                <Zoom in={true} timeout={100 * index} key={row.id || index}>
-                  <TableRow
-                    hover
-                    onClick={() => handleRowClick(row)}
-                    sx={{
-                      '&:last-child td, &:last-child th': { border: 0 },
-                      transition: 'all 0.2s ease',
-                      cursor: onRowClick ? 'pointer' : 'default',
-                      '&:hover': {
-                        backgroundColor: theme => theme.palette.action.hover,
-                        transform: 'scale(1.01)',
-                      },
-                    }}
-                  >
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      
-                      return (
-                        <TableCell key={column.id} align={column.id === 'actions' ? 'center' : 'left'}>
-                          {column.format ? (
-                            column.format(value)
-                          ) : column.id === 'change' ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              {getTrendIcon(value)}
-                              <Typography
-                                variant="body2"
-                                color={value > 0 ? 'success.main' : value < 0 ? 'error.main' : 'text.secondary'}
-                                fontWeight={500}
-                              >
-                                {value > 0 ? '+' : ''}{value}%
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        
+                        return (
+                          <TableCell key={column.id} align={column.id === 'actions' ? 'center' : 'left'}>
+                            {column.format ? (
+                              column.format(value)
+                            ) : column.id === 'change' ? (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                {getTrendIcon(value)}
+                                <Typography
+                                  variant="body2"
+                                  color={value > 0 ? 'success.main' : value < 0 ? 'error.main' : 'text.secondary'}
+                                  fontWeight={500}
+                                >
+                                  {value > 0 ? '+' : ''}{value}%
+                                </Typography>
+                              </Box>
+                            ) : column.id === 'status' ? (
+                              <Chip
+                                label={value}
+                                size="small"
+                                color={getStatusColor(value) as any}
+                              />
+                            ) : column.id === 'value' ? (
+                              <Typography variant="body2" fontWeight={500}>
+                                {typeof value === 'number' ? value.toLocaleString() : value}
                               </Typography>
-                            </Box>
-                          ) : column.id === 'status' ? (
-                            <Chip
-                              label={value}
-                              size="small"
-                              color={getStatusColor(value) as any}
-                            />
-                          ) : column.id === 'value' ? (
-                            <Typography variant="body2" fontWeight={500}>
-                              {typeof value === 'number' ? value.toLocaleString() : value}
+                            ) : (
+                              <Typography variant="body2">
+                                {value}
+                              </Typography>
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </Zoom>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Box sx={{ p: 2, pt: 0 }}>
+            {paginatedData.map((row, index) => (
+              <Zoom in={true} timeout={100 * index} key={row.id || index}>
+                <Paper variant="outlined" sx={{ mb: 1.5, p: 1.5 }} onClick={() => handleRowClick(row)}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="subtitle2" fontWeight={600}>{columns[0]?.label}</Typography>
+                    <Typography variant="body2">{row[columns[0]?.id]}</Typography>
+                  </Box>
+                  {columns.slice(1).map((column) => (
+                    <Box key={column.id} sx={{ display: 'flex', justifyContent: 'space-between', py: 0.25 }}>
+                      <Typography variant="caption" color="text.secondary">{column.label}</Typography>
+                      <Box>
+                        {column.format ? (
+                          column.format(row[column.id])
+                        ) : column.id === 'change' ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            {getTrendIcon(row[column.id])}
+                            <Typography variant="caption" color={row[column.id] > 0 ? 'success.main' : row[column.id] < 0 ? 'error.main' : 'text.secondary'} fontWeight={500}>
+                              {row[column.id] > 0 ? '+' : ''}{row[column.id]}%
                             </Typography>
-                          ) : (
-                            <Typography variant="body2">
-                              {value}
-                            </Typography>
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                </Zoom>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                          </Box>
+                        ) : column.id === 'status' ? (
+                          <Chip label={row[column.id]} size="small" color={getStatusColor(row[column.id]) as any} />
+                        ) : column.id === 'value' ? (
+                          <Typography variant="body2" fontWeight={500}>
+                            {typeof row[column.id] === 'number' ? row[column.id].toLocaleString() : row[column.id]}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2">{row[column.id]}</Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+                </Paper>
+              </Zoom>
+            ))}
+          </Box>
+        )}
 
         {/* Pagination */}
         {pagination && (
