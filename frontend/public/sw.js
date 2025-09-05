@@ -7,8 +7,6 @@ const DYNAMIC_CACHE = 'ai-dashmind-dynamic-v1';
 const STATIC_FILES = [
   '/',
   '/index.html',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
   '/favicon.ico',
   '/logo192.png',
