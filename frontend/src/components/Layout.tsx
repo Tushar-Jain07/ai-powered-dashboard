@@ -47,6 +47,8 @@ import {
   WifiOff as OfflineIcon,
   Wifi as OnlineIcon,
   BarChart as BarChartIcon,
+  Insights as InsightsIcon,
+  Calculate as CalculateIcon,
 } from '@mui/icons-material';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
@@ -79,12 +81,22 @@ interface ExtendedNotification {
   time: string;
 }
 
-// Navigation items for sidebar (Data Sources removed)
+// Navigation items for sidebar - Business Intelligence Platform
 const navigationItems: NavigationItem[] = [
   {
-    title: 'Dashboard',
+    title: 'Business Dashboard',
     path: '/dashboard',
-    icon: <DashboardIcon />, // Main dashboard
+    icon: <DashboardIcon />, // Main business dashboard
+  },
+  {
+    title: 'AI Insights',
+    path: '/ai-insights',
+    icon: <InsightsIcon />, // AI-powered business insights
+  },
+  {
+    title: 'Business Tools',
+    path: '/business-tools',
+    icon: <CalculateIcon />, // Business calculators and tools
   },
   {
     title: 'Data Entry',
@@ -317,7 +329,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
             <Typography variant="h6" noWrap component="div">
-              AI-Powered Dashboard
+              AI Business Intelligence
             </Typography>
             
             {/* App bar navigation for desktop */}

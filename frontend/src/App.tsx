@@ -5,7 +5,9 @@ import { CssBaseline, Box } from '@mui/material';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-load pages for code splitting
-const Dashboard = lazy(() => import('./pages/Dashboard'));
+const BusinessDashboard = lazy(() => import('./pages/BusinessDashboard'));
+const AIBusinessInsights = lazy(() => import('./pages/AIBusinessInsights'));
+const BusinessTools = lazy(() => import('./pages/BusinessTools'));
 const Reports = lazy(() => import('./pages/Reports'));
 const MLModels = lazy(() => import('./pages/MLModels'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -79,7 +81,7 @@ function App() {
           <Route path="/" element={
             isAuthenticated ? (
               <Layout>
-                <Dashboard />
+                <BusinessDashboard />
               </Layout>
             ) : (
               <Navigate to="/login" replace />
@@ -90,7 +92,23 @@ function App() {
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout>
-                <Dashboard />
+                <BusinessDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/ai-insights" element={
+            <ProtectedRoute>
+              <Layout>
+                <AIBusinessInsights />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/business-tools" element={
+            <ProtectedRoute>
+              <Layout>
+                <BusinessTools />
               </Layout>
             </ProtectedRoute>
           } />

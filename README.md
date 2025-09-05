@@ -1,16 +1,50 @@
-# AI-Powered Dashboard
+# AI-Powered Business Intelligence Platform
 
-An interactive analytics dashboard with AI capabilities, built with React, TypeScript, Material-UI, and Node.js.
+A comprehensive business intelligence platform with AI-powered insights, built with React, TypeScript, Material-UI, and Node.js. Transform your business data into actionable intelligence.
 
-## Features
+## 🚀 Key Features
 
-- Interactive dashboard with draggable and resizable widgets
-- KPI cards and data visualization
+### 📊 **Business Intelligence Dashboard**
+- Real-time business metrics and KPIs
+- Interactive charts and data visualization
+- Revenue, customer, and sales analytics
+- Performance monitoring and alerts
+- Customizable dashboard widgets
+
+### 🤖 **AI-Powered Business Insights**
+- Machine learning-driven business recommendations
+- Opportunity identification and risk assessment
+- Predictive analytics and trend analysis
+- Automated insight generation with confidence scores
+- Actionable recommendations with expected outcomes
+
+### 🧮 **Business Tools & Calculators**
+- ROI Calculator for investment decisions
+- Break-even analysis for pricing strategies
+- Customer Lifetime Value (CLV) calculations
+- Pricing strategy optimization
+- Business performance metrics
+
+### 📈 **Advanced Analytics**
 - Data tables with filtering and sorting
-- AI chat assistant integration (requires OpenAI API key)
-- User authentication system
+- Export capabilities (PDF, Excel, CSV)
+- Real-time data processing
+- Custom report generation
+- Historical trend analysis
+
+### 🔐 **Enterprise Security**
+- JWT-based authentication
+- Role-based access control
+- Rate limiting and input validation
+- XSS and NoSQL injection protection
+- Comprehensive audit logging
+
+### 🎨 **Modern User Experience**
+- Responsive design for all devices
 - Dark/light theme support
-- Responsive design
+- PWA capabilities for offline access
+- Intuitive navigation and user interface
+- Accessibility compliance
 
 ## Local Development
 
