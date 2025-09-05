@@ -271,7 +271,7 @@ const BusinessTools: React.FC = () => {
     setSavedCalculations(prev => [savedCalc, ...prev]);
   };
 
-  const ROI Calculator = () => (
+  const ROICalculator = () => (
     <Card>
       <CardHeader title="ROI Calculator" avatar={<TrendingUp />} />
       <CardContent>
@@ -657,7 +657,7 @@ const BusinessTools: React.FC = () => {
       </Box>
 
       {/* Tab Content */}
-      {activeTab === 0 && <ROI Calculator />}
+      {activeTab === 0 && <ROICalculator />}
       {activeTab === 1 && <BreakEvenCalculator />}
       {activeTab === 2 && <CLVCalculator />}
       {activeTab === 3 && <PricingCalculator />}
