@@ -16,6 +16,8 @@ const dataRoutes = require('./routes/data');
 const chatRoutes = require('./routes/chat');
 const userRoutes = require('./routes/user');
 const dashboardRoutes = require('./routes/dashboard');
+const dataSourcesRoutes = require('./routes/data-sources');
+const mlRoutes = require('./routes/ml');
 
 // Initialize OpenAI only if API key is available
 let openai = null;
@@ -120,6 +122,8 @@ app.use('/api/data', dataRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/data-sources', dataSourcesRoutes);
+app.use('/api/ml', mlRoutes);
 
 // Simple test endpoint
 app.get('/api/test', (req, res) => {
