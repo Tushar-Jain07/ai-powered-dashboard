@@ -1,4 +1,5 @@
 // Performance monitoring utilities
+import React from 'react';
 
 export interface PerformanceMetrics {
   pageLoadTime: number;
