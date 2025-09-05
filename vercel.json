@@ -22,8 +22,7 @@
     { "src": "/health", "dest": "/backend/api/index.js" },
     { "src": "/test", "dest": "/backend/api/index.js" },
     { "src": "/auth/(.*)", "dest": "/backend/api/index.js" },
-    { "src": "/dashboard/(.*)", "dest": "/backend/api/index.js" },
     { "src": "/chat", "dest": "/backend/api/index.js" },
-    { "src": "/(.*)", "dest": "/frontend/$1" }
+    { "src": "/(.*)", "dest": "/frontend/index.html" }
   ]
 }
