@@ -2,7 +2,20 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
+const compression = require('compression');
+const morgan = require('morgan');
+
+// Import middleware
+const { securityMiddleware, corsOptions, generalLimiter, authLimiter, chatLimiter } = require('./middleware/security');
+const errorHandler = require('./middleware/errorHandler');
+const { httpLogger, logError, logSecurity } = require('./utils/logger');
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const dataRoutes = require('./routes/data');
+const chatRoutes = require('./routes/chat');
+const userRoutes = require('./routes/user');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Initialize OpenAI only if API key is available
 let openai = null;
@@ -11,361 +24,170 @@ if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
+  console.log('✅ OpenAI initialized successfully');
+} else {
+  console.warn('⚠️  OpenAI API key not configured - AI features will be disabled');
 }
 
-// Connect to MongoDB (fallback to in-memory store if not configured)
-const mongoUri = process.env.MONGODB_URI || '';
-const useMemoryStore = !mongoUri;
-if (!useMemoryStore) {
-  mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-} else {
-  console.warn('MONGODB_URI not set – using in-memory data store for user-data endpoints');
-}
+// Connect to MongoDB
+const connectDB = async () => {
+  try {
+    const mongoUri = process.env.MONGODB_URI;
+    
+    if (!mongoUri) {
+      console.warn('⚠️  MONGODB_URI not set - using in-memory data store');
+      return;
+    }
+
+    const conn = await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
+    process.exit(1);
+  }
+};
+
+// Connect to database
+connectDB();
 
 // Create Express app
 const app = express();
 
-// Middleware
-// Dynamically determine allowed origins
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [
-      '*', // Allow all origins in production for Vercel deployment
-      'https://ai-dashmind-4ztkmvl3m-tushar-jain07s-projects.vercel.app',
-      /\.vercel\.app$/
-    ]
-  : [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:3003',
-      'http://localhost:3005'
-    ];
+// Trust proxy (for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g., mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    // In production, allow all origins for Vercel deployment
-    if (process.env.NODE_ENV === 'production') {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    console.warn(`Origin ${origin} not allowed by CORS`);
-    return callback(null, true); // Still allow it for now
-  },
-  credentials: true,
+// Security middleware
+app.use(securityMiddleware);
+
+// CORS
+app.use(cors(corsOptions));
+
+// Compression middleware
+app.use(compression());
+
+// Body parsing middleware
+app.use(express.json({ 
+  limit: process.env.MAX_FILE_SIZE || '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: process.env.MAX_FILE_SIZE || '10mb' 
+}));
 
-// Add timestamp middleware for logging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-  next();
-});
+// Logging middleware
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('combined'));
+  app.use(httpLogger);
+}
 
-// Routes
+// Rate limiting
+app.use('/api/', generalLimiter);
+app.use('/api/auth/', authLimiter);
+app.use('/api/chat/', chatLimiter);
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    message: 'Server is running', 
-    environment: process.env.NODE_ENV,
-    openai_configured: !!openai
-  });
+  const healthCheck = {
+    uptime: process.uptime(),
+    message: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: process.env.npm_package_version || '1.0.0',
+    services: {
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      openai: openai ? 'configured' : 'not configured'
+    }
+  };
+  
+  try {
+    res.status(200).json(healthCheck);
+  } catch (error) {
+    healthCheck.message = 'ERROR';
+    res.status(503).json(healthCheck);
+  }
 });
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/data', dataRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Simple test endpoint
 app.get('/api/test', (req, res) => {
-  res.json({ message: 'Test endpoint working' });
-});
-
-// Helpers
-function signJwt(payload) {
-  return jwt.sign(payload, process.env.JWT_SECRET || 'dev_secret', { expiresIn: '7d' });
-}
-
-function requireRole(roles = []) {
-  return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-    const allowed = Array.isArray(roles) ? roles : [roles];
-    if (allowed.length === 0 || allowed.includes(req.user.role)) return next();
-    return res.status(403).json({ error: 'Forbidden' });
-  };
-}
-
-// API routes
-app.post('/api/auth/login', (req, res) => {
-  // Mock authentication endpoint - enhanced for portfolio
-  console.log('Login request received');
-  console.log('Request body:', req.body);
-  
-  const { email, password } = req.body;
-  
-  // Demo account for portfolio visitors
-  if (email === 'demo@ai-dashmind.com' && password === 'demo123') {
-    const token = signJwt({ id: 'demo-user-1', email, role: 'admin', isDemo: true });
-    return res.json({ token, _id: 'demo-user-1', name: 'Demo User', email, role: 'admin', isDemo: true });
-  }
-  
-  // Regular demo login (any credentials work)
-  const token = signJwt({ id: '1', email: email || 'user@example.com', role: 'admin', isDemo: false });
-  res.json({ token, _id: '1', name: 'Demo User', email: email || 'user@example.com', role: 'admin', isDemo: false });
-});
-
-app.post('/api/auth/register', (req, res) => {
-  // Mock registration endpoint
-  res.json({
-    token: 'mock-jwt-token',
-    _id: '1',
-    name: req.body.name,
-    email: req.body.email,
-    role: 'user'
+  res.json({ 
+    success: true,
+    message: 'Test endpoint working',
+    timestamp: new Date().toISOString()
   });
 });
 
-app.get('/api/auth/me', authenticateToken, (req, res) => {
-  const { id, email, role, isDemo } = req.user;
-  res.json({ _id: id, name: isDemo ? 'Demo User' : 'Demo User', email: email || 'user@example.com', role, isDemo: !!isDemo });
-});
-
-// Additional API endpoints for dashboard data
-app.get('/api/dashboard/stats', authenticateToken, requireRole(['admin', 'user']), (req, res) => {
-  res.json({
-    totalUsers: 1250,
-    activeUsers: 847,
-    totalRevenue: 45678,
-    growthRate: 12.5
-  });
-});
-
-app.get('/api/dashboard/analytics', authenticateToken, requireRole(['admin', 'user']), (req, res) => {
-  res.json({
-    chartData: [
-      { month: 'Jan', value: 100 },
-      { month: 'Feb', value: 150 },
-      { month: 'Mar', value: 200 },
-      { month: 'Apr', value: 180 },
-      { month: 'May', value: 250 },
-      { month: 'Jun', value: 300 }
-    ]
-  });
-});
-
-// AI chat endpoint (non-streaming)
-app.post('/api/chat', authenticateToken, async (req, res) => {
-  try {
-    if (!openai) {
-      return res.status(500).json({ 
-        error: 'OpenAI API key not configured. Please add OPENAI_API_KEY environment variable.' 
-      });
-    }
-
-    const { prompt, messages } = req.body;
-
-    // Basic guard
-    if (!prompt && (!messages || !Array.isArray(messages))) {
-      return res.status(400).json({ error: 'Prompt or messages array is required' });
-    }
-
-    const chatMessages = messages && Array.isArray(messages) ? messages : [
-      { role: 'user', content: prompt }
-    ];
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: chatMessages,
-      temperature: 0.7,
-      max_tokens: 512,
-    });
-
-    const assistantMessage = completion.choices?.[0]?.message?.content || '';
-    res.json({ message: assistantMessage });
-  } catch (error) {
-    console.error('OpenAI API error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to generate response from OpenAI' });
-  }
-});
-
-// AI chat streaming endpoint (Server-Sent Events)
-app.get('/api/chat/stream', authenticateToken, async (req, res) => {
-  try {
-    if (!openai) {
-      res.writeHead(500, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-      res.write(`event: error\n`);
-      res.write(`data: ${JSON.stringify({ error: 'OpenAI API key not configured' })}\n\n`);
-      return res.end();
-    }
-
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-    });
-
-    const { prompt, messages } = req.query;
-    const chatMessages = messages ? JSON.parse(String(messages)) : [{ role: 'user', content: String(prompt || '') }];
-
-    const stream = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: chatMessages,
-      temperature: 0.7,
-      max_tokens: 512,
-      stream: true,
-    });
-
-    for await (const chunk of stream) {
-      const delta = chunk.choices?.[0]?.delta?.content;
-      if (delta) {
-        res.write(`data: ${JSON.stringify({ token: delta })}\n\n`);
-      }
-    }
-    res.write('event: end\n');
-    res.write('data: [DONE]\n\n');
-    res.end();
-  } catch (error) {
-    console.error('OpenAI stream error:', error.response?.data || error.message);
-    res.write(`event: error\n`);
-    res.write(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`);
-    res.end();
-  }
-});
-
-// DataEntry Mongoose model
-const dataEntrySchema = new mongoose.Schema({
-  date: { type: String, required: true },
-  sales: { type: Number, required: true },
-  profit: { type: Number, required: true },
-  category: { type: String, required: true },
-  userId: { type: String, required: true },
-}, { timestamps: true });
-const DataEntry = !useMemoryStore ? mongoose.model('DataEntry', dataEntrySchema) : null;
-
-// In-memory fallback store: { [userId: string]: Entry[] }
-const memoryStore = useMemoryStore ? {} : null;
-
-// JWT auth middleware
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-  jwt.verify(token, process.env.JWT_SECRET || 'dev_secret', (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
-    req.user = user;
-    next();
-  });
-}
-
-// CRUD endpoints for user data
-app.get('/api/user-data', authenticateToken, async (req, res) => {
-  if (useMemoryStore) {
-    const entries = memoryStore[req.user.id] || [];
-    return res.json(entries);
-  }
-  const entries = await DataEntry.find({ userId: req.user.id });
-  res.json(entries);
-});
-
-app.post('/api/user-data', authenticateToken, async (req, res) => {
-  const { date, sales, profit, category } = req.body;
-  if (!date || sales == null || profit == null || !category) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  if (useMemoryStore) {
-    const entry = { _id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, date, sales, profit, category, userId: req.user.id };
-    memoryStore[req.user.id] = memoryStore[req.user.id] || [];
-    memoryStore[req.user.id].push(entry);
-    return res.status(201).json(entry);
-  }
-  const entry = new DataEntry({ date, sales, profit, category, userId: req.user.id });
-  await entry.save();
-  res.status(201).json(entry);
-});
-
-// Bulk create entries
-app.post('/api/user-data/bulk', authenticateToken, async (req, res) => {
-  try {
-    const entries = Array.isArray(req.body) ? req.body : req.body?.entries;
-    if (!Array.isArray(entries) || entries.length === 0) {
-      return res.status(400).json({ error: 'entries array is required' });
-    }
-    const sanitized = entries
-      .filter(e => e && e.date && e.category && e.sales != null && e.profit != null)
-      .map(e => ({
-        date: String(e.date),
-        sales: Number(e.sales),
-        profit: Number(e.profit),
-        category: String(e.category),
-        userId: req.user.id,
-      }));
-    if (sanitized.length === 0) {
-      return res.status(400).json({ error: 'No valid entries provided' });
-    }
-    if (useMemoryStore) {
-      memoryStore[req.user.id] = memoryStore[req.user.id] || [];
-      const created = sanitized.map(e => ({ ...e, _id: `${Date.now()}-${Math.random().toString(36).slice(2)}` }));
-      memoryStore[req.user.id].push(...created);
-      return res.status(201).json(created);
-    }
-    const created = await DataEntry.insertMany(sanitized, { ordered: false });
-    res.status(201).json(created);
-  } catch (err) {
-    console.error('Bulk insert error:', err.message);
-    res.status(500).json({ error: 'Failed to upload entries' });
-  }
-});
-
-app.put('/api/user-data/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { date, sales, profit, category } = req.body;
-  if (useMemoryStore) {
-    const list = memoryStore[req.user.id] || [];
-    const idx = list.findIndex(e => String(e._id) === String(id));
-    if (idx < 0) return res.status(404).json({ error: 'Entry not found' });
-    const updated = { ...list[idx], date, sales: Number(sales), profit: Number(profit), category };
-    list[idx] = updated;
-    return res.json(updated);
-  }
-  const entry = await DataEntry.findOneAndUpdate(
-    { _id: id, userId: req.user.id },
-    { date, sales, profit, category },
-    { new: true }
-  );
-  if (!entry) return res.status(404).json({ error: 'Entry not found' });
-  res.json(entry);
-});
-
-app.delete('/api/user-data/:id', authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  if (useMemoryStore) {
-    const list = memoryStore[req.user.id] || [];
-    const before = list.length;
-    memoryStore[req.user.id] = list.filter(e => String(e._id) !== String(id));
-    if (before === memoryStore[req.user.id].length) return res.status(404).json({ error: 'Entry not found' });
-    return res.json({ success: true });
-  }
-  const result = await DataEntry.deleteOne({ _id: id, userId: req.user.id });
-  if (result.deletedCount === 0) return res.status(404).json({ error: 'Entry not found' });
-  res.json({ success: true });
-});
-
-// Catch-all route for API
+// 404 handler for API routes
 app.all('/api/*', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found' });
+  res.status(404).json({
+    success: false,
+    error: 'API endpoint not found',
+    path: req.originalUrl
+  });
 });
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5003;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// Global error handler
+app.use(errorHandler);
+
+// Graceful shutdown
+const gracefulShutdown = (signal) => {
+  console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+  
+  // Close server
+  if (server) {
+    server.close(() => {
+      console.log('✅ HTTP server closed');
+      
+      // Close database connection
+      mongoose.connection.close(false, () => {
+        console.log('✅ MongoDB connection closed');
+        process.exit(0);
+      });
+    });
+  }
+};
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  logError(error);
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  logError(new Error(`Unhandled Rejection: ${reason}`));
+  process.exit(1);
+});
+
+// Handle termination signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Start server
+const PORT = process.env.PORT || 5005;
+const server = app.listen(PORT, () => {
+  console.log(`
+🚀 Server running in ${process.env.NODE_ENV || 'development'} mode
+📡 Server listening on port ${PORT}
+🌐 Health check: http://localhost:${PORT}/api/health
+📊 API docs: http://localhost:${PORT}/api/test
+  `);
+});
 
 // Export for Vercel serverless function
-module.exports = app; 
+module.exports = app;

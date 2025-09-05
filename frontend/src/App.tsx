@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import { CssBaseline, Box } from '@mui/material';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-load pages for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -34,30 +35,31 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <CssBaseline />
-      {/* Skip to content link for accessibility */}
-      <a href="#main-content" className="skip-to-content" style={{
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        background: '#1976d2',
-        color: '#fff',
-        padding: '8px 16px',
-        zIndex: 2000,
-        transform: 'translateY(-100%)',
-        transition: 'transform 0.2s',
-      }}
-      onFocus={e => (e.currentTarget.style.transform = 'translateY(0)')}
-      onBlur={e => (e.currentTarget.style.transform = 'translateY(-100%)')}
-      >
-        Skip to main content
-      </a>
-      <Box sx={{ 
-        minHeight: '100vh',
-        backgroundColor: theme => theme.palette.background.default,
-      }}>
-        <Suspense fallback={<RouteFallback />}>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <CssBaseline />
+        {/* Skip to content link for accessibility */}
+        <a href="#main-content" className="skip-to-content" style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          background: '#1976d2',
+          color: '#fff',
+          padding: '8px 16px',
+          zIndex: 2000,
+          transform: 'translateY(-100%)',
+          transition: 'transform 0.2s',
+        }}
+        onFocus={e => (e.currentTarget.style.transform = 'translateY(0)')}
+        onBlur={e => (e.currentTarget.style.transform = 'translateY(-100%)')}
+        >
+          Skip to main content
+        </a>
+        <Box sx={{ 
+          minHeight: '100vh',
+          backgroundColor: theme => theme.palette.background.default,
+        }}>
+          <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* Public routes */}
           <Route 
@@ -152,8 +154,9 @@ function App() {
             <PWAInstall />
           </>
         )}
-      </Box>
-    </BrowserRouter>
+        </Box>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
