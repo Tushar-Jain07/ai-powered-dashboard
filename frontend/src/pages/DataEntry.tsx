@@ -32,7 +32,7 @@ interface Entry {
 }
 
 const categories = ['Electronics', 'Apparel', 'Home', 'Toys', 'Other'];
-const API_URL = '/api/user-data';
+const API_URL = '/api/data';
 
 const DataEntry: React.FC = () => {
   const [form, setForm] = useState<Entry>({
@@ -91,7 +91,10 @@ const DataEntry: React.FC = () => {
         const res = await axios.get(API_URL, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setData(res.data);
+        const entries = Array.isArray(res.data)
+          ? res.data
+          : res.data?.data?.entries || res.data?.data || [];
+        setData(entries);
         setShowAnalytics(true);
       } catch (err: any) {
         setError(err.response?.data?.error || 'Failed to fetch data');
@@ -118,7 +121,8 @@ const DataEntry: React.FC = () => {
       const res = await axios.post(API_URL, form, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setData([...data, res.data]);
+      const entry = res.data?.data || res.data;
+      setData([...data, entry]);
       setForm({ date: '', sales: 0, profit: 0, category: '' });
       setShowAnalytics(true);
     } catch (err: any) {
@@ -156,7 +160,8 @@ const DataEntry: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const res = await axios.post(`${API_URL}/bulk`, newEntries, { headers: { Authorization: `Bearer ${token}` } });
-        setData(prev => [...prev, ...res.data]);
+        const created = res.data?.data?.entries || res.data?.data || res.data || [];
+        setData(prev => [...prev, ...created]);
         setShowAnalytics(true);
       } catch (err: any) {
         setError('Failed to upload CSV entries');
@@ -210,7 +215,7 @@ const DataEntry: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const entryId = rowId;
-      await axios.delete(`${API_URL}?id=${encodeURIComponent(entryId)}`, {
+      await axios.delete(`${API_URL}/${encodeURIComponent(entryId)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setData(data.filter((e) => String((e as any)._id || (e as any).id) !== rowId));
@@ -230,10 +235,11 @@ const DataEntry: React.FC = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.put(`${API_URL}?id=${encodeURIComponent(editingId)}`, form, {
+        const res = await axios.put(`${API_URL}/${encodeURIComponent(editingId)}`, form, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const updated = data.map((e) => (String((e as any)._id || (e as any).id) === editingId ? res.data : e));
+        const updatedEntry = res.data?.data || res.data;
+        const updated = data.map((e) => (String((e as any)._id || (e as any).id) === editingId ? updatedEntry : e));
         setData(updated);
         setEditingId(null);
         setForm({ date: '', sales: 0, profit: 0, category: '' });
@@ -320,7 +326,8 @@ const DataEntry: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         const res = await axios.post(`${API_URL}/bulk`, newEntries, { headers: { Authorization: `Bearer ${token}` } });
-        setData(prev => [...prev, ...res.data]);
+        const created = res.data?.data?.entries || res.data?.data || res.data || [];
+        setData(prev => [...prev, ...created]);
         setShowAnalytics(true);
       } catch (err) {
         setError('Failed to upload Excel entries');
