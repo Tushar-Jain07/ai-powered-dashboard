@@ -123,7 +123,7 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Simple test endpoint
 app.get('/api/test', (req, res) => {
-  res.json({ 
+  res.json({
     success: true,
     message: 'Test endpoint working',
     timestamp: new Date().toISOString()
@@ -190,4 +190,4 @@ const server = app.listen(PORT, () => {
 });
 
 // Export for Vercel serverless function
-module.exports = app;
+module.exports = app; 
