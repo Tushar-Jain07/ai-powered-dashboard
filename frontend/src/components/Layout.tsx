@@ -32,7 +32,7 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   BarChart as ReportsIcon,
-  PsychologyAlt as MLModelsIcon,
+  AutoAwesome as AutomationsIcon,
   Settings as SettingsIcon,
   AccountCircle as AccountIcon,
   ChevronLeft as ChevronLeftIcon,
@@ -49,6 +49,7 @@ import {
   BarChart as BarChartIcon,
   Insights as InsightsIcon,
   Calculate as CalculateIcon,
+  IntegrationInstructions as IntegrationIcon,
 } from '@mui/icons-material';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
@@ -99,9 +100,9 @@ const navigationItems: NavigationItem[] = [
     icon: <CalculateIcon />, // Business calculators and tools
   },
   {
-    title: 'Data Entry',
-    path: '/data-entry',
-    icon: <BarChartIcon />, // Data Entry
+    title: 'Integrations',
+    path: '/integrations',
+    icon: <IntegrationIcon />, // Connect data sources
   },
   {
     title: 'Reports',
@@ -109,9 +110,9 @@ const navigationItems: NavigationItem[] = [
     icon: <ReportsIcon />, // Reports section
   },
   {
-    title: 'ML Models',
-    path: '/ml-models',
-    icon: <MLModelsIcon />, // Machine learning models
+    title: 'Automations',
+    path: '/automations',
+    icon: <AutomationsIcon />, // Automated workflows
   },
   {
     title: 'Settings',

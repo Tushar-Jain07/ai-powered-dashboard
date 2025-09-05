@@ -9,13 +9,13 @@ const BusinessDashboard = lazy(() => import('./pages/BusinessDashboard'));
 const AIBusinessInsights = lazy(() => import('./pages/AIBusinessInsights'));
 const BusinessTools = lazy(() => import('./pages/BusinessTools'));
 const Reports = lazy(() => import('./pages/Reports'));
-const MLModels = lazy(() => import('./pages/MLModels'));
+const Integrations = lazy(() => import('./pages/Integrations'));
+const Automations = lazy(() => import('./pages/Automations'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-const DataEntry = lazy(() => import('./pages/DataEntry'));
 
 // Components
 import Layout from './components/Layout';
@@ -113,10 +113,10 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/data-entry" element={
+          <Route path="/integrations" element={
             <ProtectedRoute>
               <Layout>
-                <DataEntry />
+                <Integrations />
               </Layout>
             </ProtectedRoute>
           } />
@@ -129,10 +129,10 @@ function App() {
             </ProtectedRoute>
           } />
 
-          <Route path="/ml-models" element={
+          <Route path="/automations" element={
             <ProtectedRoute>
               <Layout>
-                <MLModels />
+                <Automations />
               </Layout>
             </ProtectedRoute>
           } />
