@@ -7,14 +7,18 @@
       "config": { "distDir": "dist" }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api"
+      "source": "/api/(.*)",
+      "destination": "/api"
     },
     {
-      "src": "/(.*)",
-      "dest": "frontend/dist/index.html"
+      "source": "/(.*\\..*)",
+      "destination": "frontend/dist/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "frontend/dist/index.html"
     }
   ]
 }
