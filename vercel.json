@@ -2,31 +2,23 @@
   "version": 2,
   "builds": [
     {
-      "src": "frontend/package.json",
+      "src": "frontend/index.html",
       "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "config": { "distDir": "frontend/dist" }
     },
     {
-      "src": "backend/api/**/*.js",
+      "src": "backend/api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
-    { "src": "/favicon.ico", "dest": "/favicon.ico" },
-    { "src": "/",             "dest": "/index.html" },
-    { "src": "/logo192.png",   "dest": "/logo192.png" },
-    { "src": "/logo512.png",   "dest": "/logo512.png" },
-    { "src": "/api/auth/login", "dest": "/backend/api/auth/login.js" },
-    { "src": "/api/auth/register", "dest": "/backend/api/auth/register.js" },
-    { "src": "/api/auth/me", "dest": "/backend/api/auth/me.js" },
-    { "src": "/api/user-data", "dest": "/backend/api/user-data.js" },
-    { "src": "/api/(.*)", "dest": "/backend/api/index.js" },
-    { "src": "/health", "dest": "/backend/api/index.js" },
-    { "src": "/test", "dest": "/backend/api/index.js" },
-    { "src": "/auth/(.*)", "dest": "/backend/api/index.js" },
-    { "src": "/chat", "dest": "/backend/api/index.js" },
-    { "src": "/(.*)",          "dest": "/$1" }
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/dist/index.html"
+    }
   ]
 }
