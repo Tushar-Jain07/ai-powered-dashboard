@@ -15,6 +15,7 @@
   ],
   "routes": [
     { "src": "/favicon.ico", "dest": "/frontend/dist/favicon.ico" },
+    { "src": "/", "dest": "/frontend/dist/index.html" },
     { "src": "/logo192.png", "dest": "/frontend/dist/logo192.png" },
     { "src": "/logo512.png", "dest": "/frontend/dist/logo512.png" },
     { "src": "/api/auth/login", "dest": "/backend/api/auth/login.js" },
