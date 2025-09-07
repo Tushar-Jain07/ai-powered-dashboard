@@ -33,12 +33,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Check if user is already logged in
   useEffect(() => {
     const checkLoggedIn = async () => {
-      if (localStorage.getItem('token')) {
-        setAuthToken(localStorage.getItem('token') as string);
-        
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setAuthToken(storedToken);
         try {
           const res = await api.get('/auth/me');
-          setUser(res.data);
+          // Backend shape: { success, data: user }
+          setUser(res.data?.data ?? null);
         } catch (err) {
           localStorage.removeItem('token');
           setUser(null);
@@ -65,15 +66,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     try {
       const res = await api.post('/auth/login', { email, password });
-      
-      // Set token
-      setAuthToken(res.data.token);
-      
-      // Set user
-      setUser(res.data);
+      // Backend shape: { success, data: { token, user } }
+      const token = res.data?.data?.token as string | undefined;
+      const loggedInUser = res.data?.data?.user as User | undefined;
+
+      if (token) setAuthToken(token);
+      if (loggedInUser) setUser(loggedInUser);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during login');
+      setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during login');
       throw err;
     }
   };
@@ -82,15 +83,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const register = async (name: string, email: string, password: string) => {
     try {
       const res = await api.post('/auth/register', { name, email, password });
-      
-      // Set token
-      setAuthToken(res.data.token);
-      
-      // Set user
-      setUser(res.data);
+      // Backend shape: { success, data: { token, user } }
+      const token = res.data?.data?.token as string | undefined;
+      const newUser = res.data?.data?.user as User | undefined;
+
+      if (token) setAuthToken(token);
+      if (newUser) setUser(newUser);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during registration');
+      setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during registration');
       throw err;
     }
   };
@@ -116,7 +117,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
-        clearError
+        clearError,
       }}
     >
       {children}
@@ -131,4 +132,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
