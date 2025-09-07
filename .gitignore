@@ -14,9 +14,9 @@ node_modules/
 # Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
+.env.development
+.env.production
 
 # Logs
 logs
@@ -46,3 +46,5 @@ Thumbs.db
 .debug/
 debug.log 
 .vercel
+
+JWT_SECRET=your_generated_secret
