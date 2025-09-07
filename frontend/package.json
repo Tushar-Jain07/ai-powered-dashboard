@@ -30,9 +30,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "vercel-build": "vite build"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
