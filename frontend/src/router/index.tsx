@@ -1,32 +1,16 @@
-import { Navigate, useRoutes } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { RouteObject } from 'react-router-dom';
+import Dashboard from '../pages/Dashboard';
+import SignIn from '../pages/SignIn';
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/signin" />;
-  }
-
-  return <>{children}</>;
-};
-
-const routes = [
+export const routes: RouteObject[] = [
   {
     path: '/signin',
     element: <SignIn />
   },
   {
     path: '/',
-    element: (
-      <PrivateRoute>
-        <DashboardLayout />
-      </PrivateRoute>
-    ),
-    children: [
-      { path: '', element: <Navigate to="/dashboard" /> },
-      { path: 'dashboard', element: <Dashboard /> },
-      // ...other protected routes
-    ]
+    element: <Dashboard />
   }
 ];
+
+export default routes;
