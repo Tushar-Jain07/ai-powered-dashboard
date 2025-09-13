@@ -8,7 +8,7 @@ const morgan = require('morgan');
 // Import middleware
 const { securityMiddleware, corsOptions, generalLimiter, authLimiter, chatLimiter } = require('./middleware/security');
 const errorHandler = require('./middleware/errorHandler');
-const { httpLogger, logError, logSecurity } = require('./utils/logger');
+const { httpLogger, logError } = require('./utils/logger');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -147,12 +147,15 @@ app.all('/api/*', (req, res) => {
 app.use(errorHandler);
 
 // Graceful shutdown
+let serverInstance;
+
+// Graceful shutdown
 const gracefulShutdown = (signal) => {
   console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
   
   // Close server
-  if (server) {
-    server.close(() => {
+  if (serverInstance) {
+    serverInstance.close(() => {
       console.log('✅ HTTP server closed');
       
       // Close database connection
@@ -184,14 +187,18 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Start server
 const PORT = process.env.PORT || 5005;
-const server = app.listen(PORT, () => {
-  console.log(`
+
+// Only start the server if this file is run directly
+if (require.main === module) {
+  serverInstance = app.listen(PORT, () => {
+    console.log(`
 🚀 Server running in ${process.env.NODE_ENV || 'development'} mode
 📡 Server listening on port ${PORT}
 🌐 Health check: http://localhost:${PORT}/api/health
 📊 API docs: http://localhost:${PORT}/api/test
-  `);
-});
+    `);
+  });
+}
 
-// Export for Vercel serverless function
-module.exports = app; 
+// Export the app for testing or other modules
+module.exports = app;

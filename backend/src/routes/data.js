@@ -1,6 +1,6 @@
 const express = require('express');
-const { authenticateToken, requireRole, requireOwnership } = require('../middleware/auth');
-const { validateDataEntry, validateBulkDataEntry, validateId, validatePagination, handleValidationErrors } = require('../middleware/validation');
+const { authenticateToken /*, requireRole, requireOwnership */ } = require('../middleware/auth'); // requireRole and requireOwnership removed as they're not directly used here
+const { validateDataEntry, validateBulkDataEntry, validateId, validatePagination /*, handleValidationErrors */ } = require('../middleware/validation'); // handleValidationErrors removed as it's not directly used here
 const DataEntry = require('../models/DataEntry');
 const { logApiUsage, logError } = require('../utils/logger');
 

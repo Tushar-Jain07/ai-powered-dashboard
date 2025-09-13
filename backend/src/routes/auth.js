@@ -1,7 +1,7 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs'); // Removed as it's not directly used here
 const { body } = require('express-validator');
-const { authenticateToken, generateToken, requireRole } = require('../middleware/auth');
+const { authenticateToken, generateToken /*, requireRole */ } = require('../middleware/auth'); // requireRole removed as it's not directly used here
 const { validateLogin, validateRegistration, handleValidationErrors } = require('../middleware/validation');
 const User = require('../models/User');
 const { logSecurity, logApiUsage } = require('../utils/logger');

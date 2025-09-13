@@ -1,6 +1,6 @@
 const express = require('express');
 const { authenticateToken } = require('../middleware/auth');
-const { validateChat, handleValidationErrors } = require('../middleware/validation');
+const { validateChat /*, handleValidationErrors */ } = require('../middleware/validation'); // handleValidationErrors removed as it's not directly used here
 const { logApiUsage, logError } = require('../utils/logger');
 
 const router = express.Router();

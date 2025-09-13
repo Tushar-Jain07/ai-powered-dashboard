@@ -1,8 +1,23 @@
 const request = require('supertest');
-const app = require('../index');
-const User = require('../models/User');
+const app = require('../index'); // Import the app from index.js
+const mongoose = require('mongoose');
+const User = require('../models/User'); // Re-added to clear users
 
 describe('Authentication Routes', () => {
+  beforeAll(async () => {
+    // Ensure the database is connected before tests run
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+    }
+    await User.deleteMany({}); // Clear database once before all tests
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
+  });
   describe('POST /api/auth/register', () => {
     it('should register a new user successfully', async () => {
       const userData = {
@@ -56,16 +71,22 @@ describe('Authentication Routes', () => {
 
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
-      // Create a test user
+      // Attempt to login first, if user doesn't exist, then register
       const userData = {
         name: 'Test User',
         email: 'test@example.com',
         password: 'Test123456'
       };
 
-      await request(app)
-        .post('/api/auth/register')
+      let loginResponse = await request(app)
+        .post('/api/auth/login')
         .send(userData);
+
+      if (loginResponse.status === 401) { // User not found or invalid credentials, so register
+        await request(app)
+          .post('/api/auth/register')
+          .send(userData);
+      }
     });
 
     it('should login with valid credentials', async () => {
@@ -118,17 +139,33 @@ describe('Authentication Routes', () => {
   describe('GET /api/auth/me', () => {
     let token;
 
-    beforeEach(async () => {
-      // Create and login user
+    beforeAll(async () => {
+      // Create and login user once for all tests in this block
       const userData = {
         name: 'Test User',
         email: 'test@example.com',
         password: 'Test123456'
       };
 
-      const registerResponse = await request(app)
-        .post('/api/auth/register')
-        .send(userData);
+      let registerResponse;
+      let retries = 3;
+      while (retries > 0) {
+        registerResponse = await request(app)
+          .post('/api/auth/register')
+          .send(userData);
+
+        if (registerResponse.status === 429) {
+          console.warn('Rate limit hit during registration, retrying...');
+          retries--;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+        } else {
+          break;
+        }
+      }
+
+      expect(registerResponse.status).toBe(201);
+      expect(registerResponse.body.success).toBe(true);
+      expect(registerResponse.body.data.token).toBeDefined();
 
       token = registerResponse.body.data.token;
     });

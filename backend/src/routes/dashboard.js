@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken, requireRole } = require('../middleware/auth');
+const { authenticateToken /*, requireRole */ } = require('../middleware/auth'); // requireRole removed as it's not directly used here
 const { logApiUsage } = require('../utils/logger');
 
 const router = express.Router();
