@@ -25,11 +25,9 @@ import RouteFallback from './components/RouteFallback';
 
 // Contexts
 import { useAuth } from './contexts/AuthContext';
-import { useNotifications } from './contexts/NotificationContext';
 
 function App() {
   const { isAuthenticated, loading } = useAuth();
-  const { notifications } = useNotifications();
 
   // Show simple loading text if authentication is being checked
   if (loading) {
