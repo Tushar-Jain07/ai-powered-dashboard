@@ -19,7 +19,7 @@
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/backend/api/index.js" },
+    { "src": "/api/(.*)", "dest": "/backend/src/index.js" },
     { "src": "/favicon.ico", "dest": "/frontend/dist/favicon.ico" },
     { "src": "/index.html", "dest": "/frontend/dist/index.html" },
     { "src": "/assets/(.*)", "dest": "/frontend/dist/assets/$1" },
