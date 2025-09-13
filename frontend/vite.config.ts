@@ -25,13 +25,8 @@ export default defineConfig({
       }
     }
   },
-          return `assets/[name].[hash].[ext]`;
-        }
-      }
-    }
-  },
   server: {
-    port: 3005,
+    port: 5173,
     proxy: {
       '/api': {
         target: process.env.NODE_ENV === 'production' 
@@ -41,7 +36,4 @@ export default defineConfig({
       },
     },
   },
-  build: {
-    outDir: 'dist',
-  },
-}); 
+});

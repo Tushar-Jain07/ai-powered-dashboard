@@ -45,7 +45,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const res = await api.get('/auth/me');
           // Backend shape: { success, data: user }
-          setUser(res.data?.data ?? null);
+          const userData = res.data?.data;
+          if (userData) {
+            // Ensure both id and _id are available for compatibility
+            userData.id = userData.id || userData._id;
+            setUser(userData);
+          }
         } catch (err) {
           localStorage.removeItem('token');
           setUser(null);
@@ -77,7 +82,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const loggedInUser = res.data?.data?.user as User | undefined;
 
       if (token) setAuthToken(token);
-      if (loggedInUser) setUser(loggedInUser);
+      if (loggedInUser) {
+        // Ensure both id and _id are available for compatibility
+        loggedInUser.id = loggedInUser.id || loggedInUser._id;
+        setUser(loggedInUser);
+      }
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during login');
@@ -94,7 +103,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const newUser = res.data?.data?.user as User | undefined;
 
       if (token) setAuthToken(token);
-      if (newUser) setUser(newUser);
+      if (newUser) {
+        // Ensure both id and _id are available for compatibility
+        newUser.id = newUser.id || newUser._id;
+        setUser(newUser);
+      }
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.error || err.response?.data?.message || 'An error occurred during registration');

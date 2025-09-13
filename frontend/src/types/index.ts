@@ -1,11 +1,15 @@
 // Common types used across the application
 export interface User {
-  id: string;
+  _id: string;
+  id?: string; // For backward compatibility
   name: string;
   email: string;
   role: string;
   avatar?: string;
   preferences?: UserPreferences;
+  isEmailVerified?: boolean;
+  lastLogin?: string;
+  isDemo?: boolean;
 }
 
 export interface UserPreferences {

@@ -1,0 +1,5 @@
+[33m2aebca1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix: Resolve EADDRINUSE and 429 errors, refactor server startup and testing setup
+[33m27add9d[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix: Move NotificationProvider to main.tsx and remove from App.tsx
+[33m0460e6b[m Revert "fix: Add route guards and API error handling"
+[33m890d591[m fix: Add route guards and API error handling
+[33m4770469[m fix: Add route guards and API error handling
