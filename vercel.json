@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "public": true,
   "builds": [
     {
       "src": "frontend/package.json",
@@ -11,11 +10,8 @@
       }
     },
     {
-      "src": "backend/package.json",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["backend/**"]
-      }
+      "src": "backend/api/index.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
