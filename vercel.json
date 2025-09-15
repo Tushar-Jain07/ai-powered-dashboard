@@ -2,7 +2,11 @@
   "version": 2,
   "builds": [
     { "src": "backend/package.json", "use": "@vercel/node" },
-    { "src": "frontend/package.json", "use": "@vercel/static-build" }
+    {
+      "src": "frontend",
+      "use": "@vercel/static-build",
+      "config": { "outputDirectory": "dist" }
+    }
   ],
   "outputDirectory": "frontend/dist",
   "routes": [
