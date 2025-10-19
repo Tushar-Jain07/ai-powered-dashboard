@@ -34,5 +34,60 @@ try {
     });
   });
   
+  // Demo auth endpoints
+  app.post('/api/auth/login', (req, res) => {
+    const { email, password } = req.body;
+    
+    // Demo account for testing
+    if (email === 'demo@ai-dashmind.com' && password === 'demo123') {
+      res.json({
+        success: true,
+        data: {
+          token: 'demo-token-' + Date.now(),
+          user: {
+            _id: 'demo-user-1',
+            name: 'Demo User',
+            email: email,
+            role: 'admin',
+            isDemo: true
+          }
+        }
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid credentials. Use demo@ai-dashmind.com / demo123'
+      });
+    }
+  });
+  
+  app.post('/api/auth/register', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Registration is disabled in demo mode. Use demo@ai-dashmind.com / demo123 to login.'
+    });
+  });
+  
+  app.get('/api/auth/validate', (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer demo-token')) {
+      res.json({
+        success: true,
+        user: {
+          _id: 'demo-user-1',
+          name: 'Demo User',
+          email: 'demo@ai-dashmind.com',
+          role: 'admin',
+          isDemo: true
+        }
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        error: 'Invalid token'
+      });
+    }
+  });
+  
   module.exports = app;
 }
