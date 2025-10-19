@@ -2,8 +2,10 @@ import axios from 'axios';
 
 // API URL - determine if we're in development or production
 const isProduction = import.meta.env.PROD;
-// Use relative paths for both development and production
-const API_URL = '/api';
+// Use relative path for production, full URL for development
+const API_URL = isProduction 
+  ? '/api' 
+  : 'http://localhost:5005/api';
 
 // Create axios instance
 const api = axios.create({

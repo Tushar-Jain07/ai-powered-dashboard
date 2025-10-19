@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
         
-        await api.get('/api/auth/validate');
+        await api.get('/auth/validate');
         setIsAuthenticated(true);
       } catch (error) {
         localStorage.removeItem('token');

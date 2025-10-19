@@ -32,7 +32,9 @@ interface Entry {
 }
 
 const categories = ['Electronics', 'Apparel', 'Home', 'Toys', 'Other'];
-const API_URL = '/api/data';
+const API_URL = import.meta.env.PROD 
+  ? '/api/data' 
+  : 'http://localhost:5005/api/data';
 
 const DataEntry: React.FC = () => {
   const [form, setForm] = useState<Entry>({
