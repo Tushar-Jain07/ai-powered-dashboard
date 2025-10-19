@@ -9,12 +9,13 @@
       }
     },
     {
-      "src": "frontend",
+      "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "outputDirectory": "dist" }
+      "config": { 
+        "distDir": "dist"
+      }
     }
   ],
-  "outputDirectory": "frontend/dist",
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "src": "/(.*)", "dest": "/index.html" }
