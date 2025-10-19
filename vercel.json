@@ -10,7 +10,7 @@
   ],
   "outputDirectory": "frontend/dist",
   "routes": [
-    { "src": "/api/(.*)", "dest": "/backend/api/index.js" },
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
