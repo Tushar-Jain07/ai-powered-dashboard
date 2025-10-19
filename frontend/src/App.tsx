@@ -37,7 +37,12 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter
+       future={{
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }}
+      >
         <CssBaseline />
         {/* Skip to content link for accessibility */}
         <a href="#main-content" className="skip-to-content" style={{

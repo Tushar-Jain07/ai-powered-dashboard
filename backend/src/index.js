@@ -41,15 +41,27 @@ const connectDB = async () => {
       return;
     }
 
+    console.log('🔄 Attempting to connect to MongoDB...');
+    console.log('📍 Connecting to database...');
+    
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`📊 Database: ${conn.connection.name}`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
+    
+    // Don't crash in development
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    } else {
+      console.warn('⚠️  Continuing without database in development mode');
+    }
   }
 };
 

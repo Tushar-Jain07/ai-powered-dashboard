@@ -213,9 +213,9 @@ router.post('/models/:id/predict', authenticateToken, async (req, res, next) => 
     const { id } = req.params;
     const { features } = req.body;
 
-    // Mock prediction
+    // Mock prediction using features length for more realistic simulation
     const prediction = {
-      prediction: Math.floor(Math.random() * 10000) + 1000,
+      prediction: Math.floor(Math.random() * 10000) + 1000 + (features ? features.length * 100 : 0),
       confidence: Math.random() * 0.3 + 0.7,
       timestamp: new Date().toISOString()
     };

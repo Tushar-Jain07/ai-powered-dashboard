@@ -503,7 +503,9 @@ const DataEntry: React.FC = () => {
                 label="From"
                 value={filterDateFrom}
                 onChange={value => setFilterDateFrom(value as Date | null)}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{
+                  textField: { fullWidth: true }
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={2}>
@@ -511,7 +513,9 @@ const DataEntry: React.FC = () => {
                 label="To"
                 value={filterDateTo}
                 onChange={value => setFilterDateTo(value as Date | null)}
-                renderInput={(params) => <TextField {...params} fullWidth />}
+                slotProps={{
+                  textField: { fullWidth: true }
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={1}>
@@ -573,7 +577,18 @@ const DataEntry: React.FC = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" gutterBottom>All Entries</Typography>
           <div style={{ height: 350, width: '100%' }}>
-            <DataGrid rows={rows} columns={columns} pageSize={5} rowsPerPageOptions={[5, 10]} />
+            <DataGrid 
+              rows={rows} 
+              columns={columns} 
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: 5
+                  }
+                }
+              }}
+              pageSizeOptions={[5, 10]}
+            />
           </div>
         </Box>
       )}

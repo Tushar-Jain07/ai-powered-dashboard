@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = 'http://localhost:5005/api'; 
 
 const api = axios.create({
   baseURL: API_URL,
@@ -11,7 +11,7 @@ const api = axios.create({
 
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/api/auth/login', credentials);
+    const response = await api.post('/auth/login', credentials); // FIXED: Removed /api prefix
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
